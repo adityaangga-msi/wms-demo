@@ -1,0 +1,18 @@
+.card {
+  background: #fff;
+  border: 1px solid var(--kd-border);
+  border-radius: var(--kd-radius);
+  padding: 1rem;
+}
+.search {
+  width: min(360px, 100%);
+  margin-bottom: 0.5rem;
+}
+.actions {
+  text-align: right;
+  white-space: nowrap;
+}
+.empty {
+  color: var(--kd-muted);
+  margin: 0.75rem 0 0;
+}

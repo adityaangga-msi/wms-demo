@@ -1,0 +1,61 @@
+<app-page-header
+  title="Master Item"
+  subtitle="Stok dihitung per karton. Isi qty per karton agar tahu setara berapa Pcs/Kg/Liter."
+>
+  <button mat-flat-button class="btn-copper" type="button" (click)="openCreate()">
+    <mat-icon>add</mat-icon>
+    Tambah Item
+  </button>
+</app-page-header>
+
+<div class="card">
+  <mat-form-field appearance="outline" class="search" subscriptSizing="dynamic">
+    <mat-label>Cari item</mat-label>
+    <input matInput [value]="search()" (input)="onSearch($any($event.target).value)" placeholder="Code / nama / kategori" />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <div class="table-wrap">
+    <table mat-table [dataSource]="filtered()" class="wms-table">
+      <ng-container matColumnDef="itemCode">
+        <th mat-header-cell *matHeaderCellDef>Code</th>
+        <td mat-cell *matCellDef="let row" class="mono">{{ row.itemCode }}</td>
+      </ng-container>
+      <ng-container matColumnDef="itemName">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let row">{{ row.itemName }}</td>
+      </ng-container>
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef>Category</th>
+        <td mat-cell *matCellDef="let row">{{ row.category }}</td>
+      </ng-container>
+      <ng-container matColumnDef="uom">
+        <th mat-header-cell *matHeaderCellDef>UOM stok</th>
+        <td mat-cell *matCellDef="let row">{{ row.uom }}</td>
+      </ng-container>
+      <ng-container matColumnDef="qtyPerCarton">
+        <th mat-header-cell *matHeaderCellDef>Isi / Karton</th>
+        <td mat-cell *matCellDef="let row">
+          {{ row.qtyPerCarton ?? 1 }} {{ row.contentUom || 'Pcs' }}
+          <div class="hint">10 karton = {{ (row.qtyPerCarton ?? 1) * 10 }} {{ row.contentUom || 'Pcs' }}</div>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let row"><app-status-badge [status]="row.status" /></td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row" class="actions">
+          <button mat-icon-button type="button" (click)="openEdit(row)"><mat-icon>edit</mat-icon></button>
+          <button mat-icon-button type="button" color="warn" (click)="remove(row)"><mat-icon>delete</mat-icon></button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="cols"></tr>
+      <tr mat-row *matRowDef="let row; columns: cols"></tr>
+    </table>
+  </div>
+  @if (!filtered().length) {
+    <p class="empty">Tidak ada data.</p>
+  }
+</div>

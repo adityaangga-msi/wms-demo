@@ -1,0 +1,36 @@
+<div class="shortcuts">
+  <header class="shortcuts__head">
+    <div class="title">
+      <span class="icon"><mat-icon>keyboard</mat-icon></span>
+      <h2 mat-dialog-title>Pintasan keyboard</h2>
+    </div>
+    <button mat-icon-button type="button" (click)="close()" aria-label="Tutup">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content>
+    <ul class="list">
+      @for (item of shortcuts; track item.label) {
+        <li>
+          <span>{{ item.label }}</span>
+          <span class="keys">
+            @for (k of item.keys; track k; let last = $last) {
+              <kbd>{{ k }}</kbd>
+              @if (!last) {
+                <span class="sep">+</span>
+              }
+            }
+          </span>
+        </li>
+      }
+    </ul>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="start">
+    <button mat-button type="button" color="primary" (click)="openGuide()">
+      Buka Panduan Demo
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </mat-dialog-actions>
+</div>

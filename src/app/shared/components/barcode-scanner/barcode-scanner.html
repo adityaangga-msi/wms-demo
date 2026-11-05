@@ -1,0 +1,44 @@
+<div class="scanner">
+  <mat-form-field appearance="outline" class="scanner__field" subscriptSizing="dynamic">
+    <mat-label>{{ label() }}</mat-label>
+    <input
+      #scanInput
+      matInput
+      class="mono"
+      [disabled]="disabled()"
+      [ngModel]="manualValue()"
+      (ngModelChange)="manualValue.set($event)"
+      (keydown)="onKeydown($event)"
+      autocomplete="off"
+      placeholder="CTN000004 / QR → Enter"
+    />
+    <mat-icon matPrefix>qr_code_scanner</mat-icon>
+  </mat-form-field>
+  <button
+    mat-flat-button
+    class="btn-copper"
+    type="button"
+    [disabled]="disabled()"
+    (click)="submitManual()"
+  >
+    <mat-icon>add</mat-icon>
+    Tambah
+  </button>
+  <button
+    mat-stroked-button
+    type="button"
+    [disabled]="disabled()"
+    [matTooltip]="cameraOn() ? 'Matikan kamera' : 'Scan barcode / QR kamera'"
+    (click)="toggleCamera()"
+  >
+    <mat-icon>{{ cameraOn() ? 'videocam_off' : 'photo_camera' }}</mat-icon>
+    {{ cameraOn() ? 'Stop' : 'Kamera QR/BC' }}
+  </button>
+</div>
+@if (cameraError()) {
+  <p class="scanner__error">{{ cameraError() }}</p>
+}
+@if (cameraOn() && lastCameraCode()) {
+  <p class="scanner__last">Terakhir terbaca: <code>{{ lastCameraCode() }}</code></p>
+}
+<div #cameraHost class="scanner__camera" [class.active]="cameraOn()"></div>

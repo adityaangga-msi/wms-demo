@@ -1,0 +1,49 @@
+<app-page-header
+  title="Warehouse Map 3D"
+  subtitle="Denah blueprint seperti Pohi: gedung = warehouse, lantai, ruangan = bin. Buat bin dengan tarik di grid."
+>
+  <button mat-stroked-button type="button" (click)="reloadMap()">Reload</button>
+  <a mat-stroked-button routerLink="/inventory/summary">Summary</a>
+</app-page-header>
+
+<div class="pohi-root">
+  <header class="pohi-head">
+    <h1>DENAH GUDANG<small>{{ crumb() }}</small></h1>
+  </header>
+  <div class="hint">{{ hint() }}</div>
+
+  <div class="pohi-body">
+    <div id="scene" #scene class="scene">
+      <div id="stage" #stage class="stage"></div>
+    </div>
+
+    <aside class="side">
+      <div id="panel" #panel class="panel"></div>
+
+      @if (selectedLoc(); as loc) {
+        <section class="stock cardish">
+          <h3>Stok · {{ loc.locationCode }}</h3>
+          <ul class="carton-list">
+            @for (c of locCartons(); track c.id) {
+              <li>
+                <button type="button" class="linkish mono" (click)="selectCarton(c)">{{ c.barcode }}</button>
+                <span>{{ c.itemCode }}</span>
+                <app-status-badge [status]="c.inventoryStatus || 'UU'" />
+              </li>
+            } @empty {
+              <li class="muted">Bin kosong.</li>
+            }
+          </ul>
+          @if (selectedCarton(); as c) {
+            <div class="carton-detail">
+              <div>{{ c.itemCode }} — {{ c.itemName }}</div>
+              <a mat-stroked-button [routerLink]="['/inventory/barcode-tracking']" [queryParams]="{ b: c.barcode }">
+                Barcode Tracking
+              </a>
+            </div>
+          }
+        </section>
+      }
+    </aside>
+  </div>
+</div>

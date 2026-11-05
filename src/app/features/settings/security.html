@@ -1,0 +1,27 @@
+<app-page-header title="Keamanan" subtitle="Kelola keamanan akun Anda.">
+  <a mat-stroked-button routerLink="/settings">
+    <mat-icon>arrow_back</mat-icon>
+    Kembali ke pengaturan
+  </a>
+</app-page-header>
+
+<section class="panel">
+  <p class="lead">Kata sandi minimal 6 karakter.</p>
+  <form [formGroup]="form" (ngSubmit)="save()" class="form">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Kata sandi saat ini</mat-label>
+      <input matInput type="password" formControlName="current" autocomplete="current-password" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Kata sandi baru</mat-label>
+      <input matInput type="password" formControlName="next" autocomplete="new-password" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Konfirmasi kata sandi baru</mat-label>
+      <input matInput type="password" formControlName="confirm" autocomplete="new-password" />
+    </mat-form-field>
+    <button mat-flat-button class="btn-copper" type="submit" [disabled]="saving()">
+      Ubah kata sandi
+    </button>
+  </form>
+</section>

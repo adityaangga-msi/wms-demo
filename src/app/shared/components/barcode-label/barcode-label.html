@@ -1,0 +1,47 @@
+<div class="label-card print-label">
+  <div class="label-card__meta">
+    @if (itemCode() || itemName()) {
+      <div class="row">
+        <span class="k">Item</span>
+        <span class="v mono">{{ itemCode() }} — {{ itemName() }}</span>
+      </div>
+    }
+    @if (warehouseCode() || locationCode()) {
+      <div class="row">
+        <span class="k">Lokasi</span>
+        <span class="v mono">{{ warehouseCode() }} / {{ locationCode() }}</span>
+      </div>
+    }
+    <div class="row">
+      <span class="k">Code</span>
+      <span class="v mono">{{ barcode() }}</span>
+    </div>
+  </div>
+
+  <div class="label-card__codes">
+    @if (activeMode() === 'barcode' || activeMode() === 'both') {
+      <svg #barcodeSvg class="label-card__svg"></svg>
+    }
+    @if (activeMode() === 'qr' || activeMode() === 'both') {
+      <canvas #qrCanvas class="label-card__qr" width="128" height="128"></canvas>
+    }
+  </div>
+
+  <div class="label-card__toolbar no-print">
+    <mat-button-toggle-group
+      [value]="activeMode()"
+      (change)="setMode($event.value)"
+      hideSingleSelectionIndicator
+    >
+      <mat-button-toggle value="barcode">Barcode</mat-button-toggle>
+      <mat-button-toggle value="qr">QR</mat-button-toggle>
+      <mat-button-toggle value="both">Both</mat-button-toggle>
+    </mat-button-toggle-group>
+    @if (showPrint()) {
+      <button mat-stroked-button type="button" (click)="print()">
+        <mat-icon>print</mat-icon>
+        Cetak
+      </button>
+    }
+  </div>
+</div>

@@ -1,0 +1,233 @@
+<app-route-progress />
+<div
+  class="shell"
+  [class.shell--collapsed]="collapsed()"
+  [class.shell--mobile-open]="mobileOpen()"
+>
+  @if (mobileOpen()) {
+    <button type="button" class="sidebar-backdrop" aria-label="Tutup menu" (click)="closeMobile()"></button>
+  }
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <div class="brand-mark" aria-hidden="true">
+        <mat-icon>warehouse</mat-icon>
+      </div>
+      @if (!collapsed()) {
+        <div class="brand-text">
+          <strong>KartonDock</strong>
+          <span>Warehouse Ops</span>
+        </div>
+      }
+      <button
+        mat-icon-button
+        type="button"
+        class="collapse-btn"
+        (click)="toggleSidebar()"
+        [matTooltip]="collapsed() ? 'Expand' : 'Collapse'"
+      >
+        <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      </button>
+    </div>
+
+    <nav class="sidebar__nav">
+      <a
+        class="nav-link top"
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [matTooltip]="collapsed() ? 'Beranda' : ''"
+      >
+        <mat-icon>grid_view</mat-icon>
+        @if (!collapsed()) {
+          <span>Beranda</span>
+        }
+      </a>
+
+      <a
+        class="nav-link top"
+        routerLink="/notifications"
+        routerLinkActive="active"
+        [matTooltip]="collapsed() ? 'Notifikasi' : ''"
+      >
+        <mat-icon>notifications</mat-icon>
+        @if (!collapsed()) {
+          <span>Notifikasi</span>
+          @if (unreadCount() > 0) {
+            <em class="badge">{{ unreadCount() }}</em>
+          }
+        } @else if (unreadCount() > 0) {
+          <em class="badge badge--dot">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</em>
+        }
+      </a>
+
+      @for (group of groups; track group.id) {
+        <div class="nav-group">
+          @if (!collapsed()) {
+            <button type="button" class="nav-group__head" (click)="toggleGroup(group.id)">
+              <span>{{ group.label }}</span>
+              <mat-icon>{{ isOpen(group.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+          }
+          @if (collapsed() || isOpen(group.id)) {
+            <div class="nav-group__items">
+              @for (item of group.items; track item.path) {
+                <a
+                  class="nav-link"
+                  [routerLink]="item.path"
+                  routerLinkActive="active"
+                  [matTooltip]="collapsed() ? item.label : ''"
+                >
+                  <mat-icon>{{ item.icon }}</mat-icon>
+                  @if (!collapsed()) {
+                    <span>{{ item.label }}</span>
+                  }
+                </a>
+              }
+            </div>
+          }
+        </div>
+      }
+    </nav>
+
+    <div class="sidebar__foot">
+      @if (!collapsed()) {
+        <div class="demo-note">
+          <mat-icon>cloud_off</mat-icon>
+          <span>DEMO · data lokal di browser</span>
+        </div>
+      }
+      <button
+        type="button"
+        class="user-chip"
+        [class.user-chip--mini]="collapsed()"
+        [matMenuTriggerFor]="userMenu"
+      >
+        <div class="user-avatar">{{ user()?.initials || 'DU' }}</div>
+        @if (!collapsed()) {
+          <div class="user-meta">
+            <strong>{{ user()?.name || 'Demo User' }}</strong>
+            <span>{{ user()?.role || 'Operator' }}</span>
+          </div>
+          <mat-icon>expand_more</mat-icon>
+        }
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <button mat-menu-item type="button" (click)="openShortcuts()">
+          <mat-icon>keyboard</mat-icon>
+          <span>Pintasan keyboard</span>
+        </button>
+        <button mat-menu-item type="button" (click)="router.navigateByUrl('/notifications')">
+          <mat-icon>notifications</mat-icon>
+          <span>Notifikasi</span>
+        </button>
+        <button mat-menu-item type="button" (click)="router.navigateByUrl('/settings')">
+          <mat-icon>settings</mat-icon>
+          <span>Pengaturan Demo</span>
+        </button>
+        <button mat-menu-item type="button" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Keluar</span>
+        </button>
+      </mat-menu>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="shell-top">
+      <div class="shell-top__brand-mobile">
+        <button mat-icon-button type="button" class="icon-chip" (click)="openMobile()" aria-label="Menu">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <div class="mobile-logo">
+          <span class="mobile-mark"><mat-icon>warehouse</mat-icon></span>
+          <strong>KartonDock</strong>
+        </div>
+      </div>
+
+      <div class="shell-top__meta">
+        <span class="live-dot"></span>
+        <span>{{ breadcrumb() }}</span>
+      </div>
+
+      <div class="shell-top__right">
+        <button
+          mat-icon-button
+          type="button"
+          class="icon-chip"
+          matTooltip="Pintasan keyboard (?)"
+          (click)="openShortcuts()"
+          aria-label="Tampilkan pintasan"
+        >
+          <mat-icon>help_outline</mat-icon>
+        </button>
+        <a
+          mat-icon-button
+          class="icon-chip notif-bell"
+          [class.notif-bell--unread]="unreadCount() > 0"
+          routerLink="/notifications"
+          matTooltip="Notifikasi"
+          aria-label="Notifikasi"
+        >
+          <mat-icon>notifications</mat-icon>
+          @if (unreadCount() > 0) {
+            <span class="bell-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+          }
+        </a>
+        <a
+          mat-icon-button
+          class="icon-chip"
+          routerLink="/settings"
+          matTooltip="Pengaturan"
+          aria-label="Pengaturan"
+        >
+          <mat-icon>settings</mat-icon>
+        </a>
+        <button
+          type="button"
+          class="top-avatar"
+          [matMenuTriggerFor]="userMenu"
+          [matTooltip]="user()?.name || 'Akun'"
+        >
+          {{ user()?.initials || 'DU' }}
+        </button>
+        <span class="demo-chip">DEMO</span>
+      </div>
+    </div>
+
+    <main class="content">
+      @if (navUx.navigating()) {
+        <div class="route-veil" aria-hidden="true">
+          <div class="route-veil__card">
+            <div class="route-veil__spinner"></div>
+            <span>Memuat halaman…</span>
+          </div>
+        </div>
+      }
+      <div class="page-view" #pageView>
+        <router-outlet (activate)="onRouteActivate(pageView)" />
+      </div>
+    </main>
+  </div>
+
+  @if (showBackTop()) {
+    <button
+      type="button"
+      class="back-top"
+      (click)="scrollToTop()"
+      matTooltip="Kembali ke atas"
+      aria-label="Kembali ke atas"
+    >
+      <svg class="back-top__ring" viewBox="0 0 36 36" aria-hidden="true">
+        <circle class="back-top__track" cx="18" cy="18" r="15.5" />
+        <circle
+          class="back-top__progress"
+          cx="18"
+          cy="18"
+          r="15.5"
+          [attr.stroke-dasharray]="backTopDash()"
+        />
+      </svg>
+      <mat-icon>expand_less</mat-icon>
+    </button>
+  }
+</div>

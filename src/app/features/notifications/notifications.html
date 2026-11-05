@@ -1,0 +1,64 @@
+<app-page-header
+  title="Notifikasi"
+  subtitle="Tindakan dan pembaruan operasional gudang yang perlu Anda ketahui."
+>
+  <button mat-stroked-button type="button" class="btn-hero-outline" (click)="markAll()" [disabled]="!unreadCount()">
+    <mat-icon>done_all</mat-icon>
+    Tandai semua dibaca
+  </button>
+</app-page-header>
+
+<div class="info-banner card">
+  <mat-icon>info</mat-icon>
+  <div>
+    Tombol <strong>Kirim ke email / ponsel</strong> bersifat simulasi untuk demo — tidak mengirim pesan sungguhan.
+  </div>
+</div>
+
+<div class="toolbar card">
+  <div class="toolbar__left">
+    <strong>{{ unreadCount() }}</strong>
+    <span>notifikasi belum dibaca</span>
+  </div>
+  <mat-button-toggle-group [value]="filter()" (change)="setFilter($event.value)" hideSingleSelectionIndicator>
+    <mat-button-toggle value="all">Semua</mat-button-toggle>
+    <mat-button-toggle value="unread">Belum dibaca ({{ unreadCount() }})</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+<div class="list">
+  @for (n of rows(); track n.id) {
+    <article class="notif card" [class.notif--unread]="!n.read">
+      <div class="notif__main">
+        <div class="notif__meta">
+          @if (!n.read) {
+            <span class="dot" aria-hidden="true"></span>
+          }
+          <span class="cat">{{ n.category }}</span>
+          <span class="ref mono">{{ n.refCode }}</span>
+        </div>
+        <h3>{{ n.title }}</h3>
+        <p>{{ n.message }}</p>
+        <time>{{ n.createdAt | date: 'dd-MM-yyyy HH:mm' }}</time>
+      </div>
+      <div class="notif__actions">
+        <button mat-stroked-button type="button" (click)="simulate('email', n)">
+          Kirim ke email
+          <span class="sim">Simulasi</span>
+        </button>
+        <button mat-stroked-button type="button" (click)="simulate('phone', n)">
+          Kirim ke ponsel
+          <span class="sim">Simulasi</span>
+        </button>
+        @if (!n.read) {
+          <button mat-button type="button" (click)="markRead(n)">Tandai sudah dibaca</button>
+        }
+        @if (n.link) {
+          <a mat-button [routerLink]="n.link">Buka</a>
+        }
+      </div>
+    </article>
+  } @empty {
+    <div class="card empty">Tidak ada notifikasi untuk filter ini.</div>
+  }
+</div>

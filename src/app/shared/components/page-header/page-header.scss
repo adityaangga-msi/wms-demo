@@ -1,0 +1,106 @@
+.hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 1.25rem 1.4rem 1.35rem;
+  margin-bottom: 0.15rem;
+  color: #fff;
+  background:
+    linear-gradient(135deg, rgba(240, 162, 2, 0.16), transparent 42%),
+    linear-gradient(160deg, #16253a 0%, #0b1728 58%, #132033 100%);
+  box-shadow: 0 16px 36px rgba(11, 23, 40, 0.18);
+}
+
+.hero__glow {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  right: -60px;
+  top: -120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(61, 143, 209, 0.28), transparent 68%);
+  pointer-events: none;
+}
+
+.hero__top {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0.85rem;
+}
+
+.hero__crumbs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.crumb--current {
+  color: #ffd27a;
+}
+
+.dot {
+  opacity: 0.45;
+}
+
+.hero__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hero__text h1 {
+  margin: 0;
+  font-size: clamp(1.45rem, 2.2vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.hero__text p {
+  margin: 0.45rem 0 0;
+  max-width: 52rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.hero__text p::after {
+  content: '';
+  display: block;
+  width: 88px;
+  height: 4px;
+  margin-top: 0.85rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f0a202 0%, rgba(61, 143, 209, 0.55) 100%);
+}
+
+.hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+:host ::ng-deep {
+  .mat-mdc-outlined-button {
+    --mdc-outlined-button-outline-color: rgba(255, 255, 255, 0.28);
+    --mdc-outlined-button-label-text-color: #fff;
+    color: #fff !important;
+    border-color: rgba(255, 255, 255, 0.28) !important;
+  }
+
+  .mat-mdc-button {
+    color: #fff !important;
+  }
+}

@@ -1,0 +1,73 @@
+<section class="auth-shell">
+  <div class="auth-ambient" aria-hidden="true">
+    <canvas #ambientCanvas></canvas>
+  </div>
+
+  <div class="auth-visual">
+    <div class="logo-frame"><mat-icon>warehouse</mat-icon></div>
+    <h1>KartonDock</h1>
+    <p class="brand-tagline">Warehouse Ops · Carton WMS</p>
+    <ul class="brand-ticks">
+      <li class="brand-tick">
+        <span class="brand-tick__icon"><mat-icon>inventory_2</mat-icon></span>
+        <span>Inventory berbasis karton dengan barcode unik per unit</span>
+      </li>
+      <li class="brand-tick">
+        <span class="brand-tick__icon"><mat-icon>qr_code_scanner</mat-icon></span>
+        <span>Inbound, outbound, dan adjustment dengan scan USB / kamera</span>
+      </li>
+      <li class="brand-tick">
+        <span class="brand-tick__icon"><mat-icon>cloud_off</mat-icon></span>
+        <span>Mode DEMO — data lokal IndexedDB, tanpa backend</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="auth-panel panel">
+    <div class="panel-head">
+      <h2>{{ prefs.language() === 'en' ? 'Verify OTP code' : 'Verifikasi kode OTP' }}</h2>
+      <div class="lang">
+        <button type="button" class="lang-option" [class.active]="prefs.language() === 'id'" (click)="setLang('id')">
+          Indonesia
+        </button>
+        <button type="button" class="lang-option" [class.active]="prefs.language() === 'en'" (click)="setLang('en')">
+          English
+        </button>
+      </div>
+    </div>
+
+    <p class="panel-sub">
+      {{ prefs.language() === 'en' ? 'Enter the verification code to continue.' : 'Masukkan kode verifikasi untuk melanjutkan.' }}
+    </p>
+
+    @if (pending(); as p) {
+      <p class="email-line">Email: <strong>{{ p.email }}</strong></p>
+    }
+
+    <div class="sim-banner">
+      <mat-icon>science</mat-icon>
+      <div>
+        <strong>Simulasi</strong>
+        <span>Mode demo: kode OTP terisi otomatis ({{ demoCode }}).</span>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="verify()" class="login-form">
+      <label class="field-label">KODE OTP</label>
+      <mat-form-field appearance="outline" class="full glass-field">
+        <input matInput formControlName="code" maxlength="8" autocomplete="one-time-code" />
+        <mat-icon matPrefix>pin</mat-icon>
+      </mat-form-field>
+      <p class="hint">Enam karakter, kombinasi huruf dan angka</p>
+
+      <button mat-flat-button class="btn-submit" type="submit" [disabled]="submitting()">
+        {{ prefs.language() === 'en' ? 'Verify and sign in' : 'Verifikasi dan masuk' }}
+      </button>
+      <button mat-stroked-button type="button" class="btn-demo" (click)="back()">
+        {{ prefs.language() === 'en' ? 'Back to sign in' : 'Kembali ke halaman masuk' }}
+      </button>
+    </form>
+
+    <p class="foot">© {{ year }} KartonDock WMS Demo</p>
+  </div>
+</section>

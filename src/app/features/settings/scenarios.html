@@ -1,0 +1,161 @@
+<app-page-header
+  title="Contoh Skenario Transaksi"
+  subtitle="Alur demo KartonDock berbasis karton — barcode & QR, dari inbound sampai laporan."
+>
+  <a mat-stroked-button routerLink="/settings">
+    <mat-icon>arrow_back</mat-icon>
+    Kembali ke pengaturan
+  </a>
+</app-page-header>
+
+<section class="panel tip">
+  <mat-icon>lightbulb</mat-icon>
+  <div>
+    <strong>Seed demo siap pakai</strong>
+    <p>
+      Setelah login (OTP <code>246810</code>), data sample sudah berisi WH01/WH02, item ITEM001–003,
+      karton <code>CTN000001</code>… Available (kecuali CTN000001–003 sudah Shipped). Password akun
+      demo: <code>password123</code>.
+    </p>
+  </div>
+</section>
+
+<article class="scenario">
+  <header>
+    <span class="num">1</span>
+    <div>
+      <h2>Inbound — terima karton baru</h2>
+      <p>Supplier kirim barang; sistem generate barcode/QR lalu stok Available.</p>
+    </div>
+  </header>
+  <ol>
+    <li>Buka <a routerLink="/operations/inbound">Inbound</a> → <strong>Buat Inbound</strong>.</li>
+    <li>Pilih Supplier, Warehouse (mis. WH01), tanggal; isi baris Item, Qty, Location, <strong>Exp Date</strong>, <strong>Batch</strong>, <strong>Status QI/UU</strong> (+ UU Date jika UU).</li>
+    <li>Atau <strong>Import Excel</strong> / paste JSON API di panel integrasi.</li>
+    <li><strong>Simpan Draft</strong> → <strong>Generate Barcode / QR</strong>.</li>
+    <li>Cetak/lihat label (toggle Barcode / QR / Both) → <strong>Konfirmasi</strong>.</li>
+    <li>Cek <a routerLink="/inventory/summary">Inventory Summary</a>: qty Available bertambah.</li>
+  </ol>
+</article>
+
+<article class="scenario">
+  <header>
+    <span class="num">2</span>
+    <div>
+      <h2>Outbound — kirim ke customer (scan)</h2>
+      <p>Picking berbasis scan barcode/QR; status karton → Reserved → Shipped.</p>
+    </div>
+  </header>
+  <ol>
+    <li>Buka <a routerLink="/operations/outbound">Outbound</a> → <strong>Buat Outbound</strong>.</li>
+    <li>Pilih Customer + <strong>Warehouse yang sama</strong> dengan stok (WH01 untuk CTN000004+).</li>
+    <li>Buat Draft → di bagian scan, ketik <code>CTN000004</code> + Enter, atau klik quick pick, atau buka kamera QR/BC.</li>
+    <li>Ulangi scan beberapa karton → Lines terisi otomatis per item.</li>
+    <li><strong>Konfirmasi</strong> → karton menjadi Shipped; cek Inventory &amp; Reports.</li>
+  </ol>
+  <div class="callout">
+    <mat-icon>warning</mat-icon>
+    <span>
+      Scan gagal biasanya karena warehouse tidak cocok, atau barcode sudah Shipped/Reserved.
+      Contoh: CTN000001–003 seed sudah Shipped.
+    </span>
+  </div>
+</article>
+
+<article class="scenario">
+  <header>
+    <span class="num">3</span>
+    <div>
+      <h2>Quality Inspection (QI)</h2>
+      <p>Inbound QI → antrean QI → Pass/Fail + disposition → hanya UU boleh Outbound.</p>
+    </div>
+  </header>
+  <ol>
+    <li>
+      Buat <a routerLink="/operations/inbound">Inbound</a> Inspection Type = <strong>QI</strong>, generate
+      barcode, Simpan &amp; Konfirmasi → karton status <em>QI Pending</em>.
+    </li>
+    <li>
+      Buka <a routerLink="/operations/qi">Quality Inspection</a> → Inspect karton (checklist + foto) →
+      Pass/Quarantine/Block/Return/Scrap → Complete QI.
+    </li>
+    <li>
+      Uji Outbound: hanya barcode UU diterima; QI Pending/Quarantine ditolak. Cek
+      <a routerLink="/inventory/warehouse-map">Warehouse Map</a> &amp;
+      <a routerLink="/inventory/barcode-tracking">Barcode Tracking</a>.
+    </li>
+  </ol>
+</article>
+
+<article class="scenario">
+  <header>
+    <span class="num">3b</span>
+    <div>
+      <h2>Adjustment — tempat atau qty</h2>
+      <p>Pindah lokasi atau koreksi qty — hanya karton UU untuk adjustment normal.</p>
+    </div>
+  </header>
+  <ol>
+    <li>
+      Buka <a routerLink="/operations/adjustment">Adjustment</a> → Tempat / Quantity.
+    </li>
+    <li>Scan/quick pick Available (UU) → konfirmasi di halaman yang sama.</li>
+  </ol>
+</article>
+
+<article class="scenario">
+  <header>
+    <span class="num">4</span>
+    <div>
+      <h2>Barcode / QR tracking &amp; laporan</h2>
+      <p>Telusuri jejak karton dan rekap transaksi.</p>
+    </div>
+  </header>
+  <ol>
+    <li>
+      <a routerLink="/inventory/barcode-tracking">Barcode Tracking</a> — cari
+      <code>CTN000004</code> untuk lihat status &amp; dokumen terkait.
+    </li>
+    <li>
+      Laporan:
+      <a routerLink="/reports/transactions">Transaction History</a>,
+      <a routerLink="/reports/inbound">Inbound</a>,
+      <a routerLink="/reports/outbound">Outbound</a>,
+      <a routerLink="/reports/inventory">Inventory</a>.
+    </li>
+    <li>
+      Reset dataset:
+      <a routerLink="/settings/demo-data">Demo Data</a> → Reset, atau dari hub Pengaturan.
+    </li>
+  </ol>
+</article>
+
+<section class="panel matrix">
+  <h2>Ringkasan status karton</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Artinya</th>
+        <th>Dari transaksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Available</td>
+        <td>Siap di-scan outbound/adjustment</td>
+        <td>Setelah inbound confirm</td>
+      </tr>
+      <tr>
+        <td>Reserved</td>
+        <td>Sudah di-scan di draft outbound</td>
+        <td>Outbound picking</td>
+      </tr>
+      <tr>
+        <td>Shipped</td>
+        <td>Sudah dikirim</td>
+        <td>Outbound confirm</td>
+      </tr>
+    </tbody>
+  </table>
+</section>

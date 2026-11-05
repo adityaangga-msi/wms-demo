@@ -1,0 +1,48 @@
+<app-page-header
+  title="Demo Data Management"
+  subtitle="Seed, reset, export, dan import data lokal (IndexedDB / Dexie)."
+>
+  <a mat-stroked-button routerLink="/settings">
+    <mat-icon>arrow_back</mat-icon>
+    Kembali ke pengaturan
+  </a>
+</app-page-header>
+
+<div class="card">
+  <p class="lead">
+    Data KartonDock WMS tersimpan di browser Anda. Gunakan tombol di bawah untuk mengelola dataset demo.
+  </p>
+
+  <div class="actions">
+    <button mat-stroked-button type="button" [disabled]="busy()" (click)="loadSample()">
+      <mat-icon>download</mat-icon>
+      Load Sample
+    </button>
+    <button mat-stroked-button type="button" color="warn" [disabled]="busy()" (click)="reset()">
+      <mat-icon>restart_alt</mat-icon>
+      Reset Demo Data
+    </button>
+    <button mat-flat-button class="btn-copper" type="button" [disabled]="busy()" (click)="exportJson()">
+      <mat-icon>file_upload</mat-icon>
+      Export JSON
+    </button>
+    <button mat-stroked-button type="button" [disabled]="busy()" (click)="pickImport()">
+      <mat-icon>file_download</mat-icon>
+      Import JSON
+    </button>
+  </div>
+
+  <input
+    #fileInput
+    type="file"
+    accept="application/json,.json"
+    hidden
+    (change)="onImportFile($event)"
+  />
+
+  <ul class="notes">
+    <li><strong>Load Sample</strong> — hanya jika database kosong.</li>
+    <li><strong>Reset</strong> — hapus semua lalu seed ulang sample.</li>
+    <li><strong>Export / Import</strong> — backup & restore payload JSON penuh.</li>
+  </ul>
+</div>

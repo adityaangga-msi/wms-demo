@@ -1,0 +1,243 @@
+<app-page-header
+  [title]="isNew() ? 'Buat Inbound' : (doc()?.docNo || 'Inbound')"
+  [subtitle]="
+    isNew()
+      ? 'Penerimaan karton — isi Exp Date, Batch, Status QI/UU, atau import Excel/API.'
+      : 'Detail dokumen inbound.'
+  "
+>
+  <a mat-stroked-button routerLink="/operations/inbound">Kembali</a>
+  @if (doc()) {
+    <app-status-badge [status]="doc()!.status" />
+    @if (doc()?.source) {
+      <span class="source-pill">{{ doc()!.source }}</span>
+    }
+  }
+</app-page-header>
+
+@if (isNew() || editable()) {
+  <section class="card import-panel no-print">
+    <div class="section-head">
+      <h3>Input Massal &amp; Integrasi</h3>
+      <button mat-stroked-button type="button" (click)="showIntegration.set(!showIntegration())">
+        <mat-icon>hub</mat-icon>
+        {{ showIntegration() ? 'Sembunyikan API' : 'Integrasi sistem lain' }}
+      </button>
+    </div>
+    <div class="import-actions">
+      <button mat-stroked-button type="button" (click)="downloadExcelTemplate()" [disabled]="importing()">
+        <mat-icon>download</mat-icon>
+        Template Excel
+      </button>
+      <button mat-flat-button class="btn-copper" type="button" [disabled]="importing()" (click)="excelInput.click()">
+        <mat-icon>upload_file</mat-icon>
+        Import Excel
+      </button>
+      <input
+        #excelInput
+        type="file"
+        hidden
+        accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        (change)="onExcelSelected($event)"
+      />
+    </div>
+    <p class="import-hint">
+      Kolom Excel: <code>supplierCode</code>, <code>warehouseCode</code>, <code>itemCode</code>,
+      <code>quantity</code>, <code>locationCode</code>, <code>expiredDate</code>, <code>batchNo</code>,
+      <code>qcStatus</code> (QI/UU), <code>uuDate</code>.
+    </p>
+
+    @if (showIntegration()) {
+      <div class="api-box">
+        <div class="section-head">
+          <h4>Simulasi API / sistem eksternal</h4>
+          <button mat-stroked-button type="button" (click)="fillSampleApi()">Isi contoh JSON</button>
+        </div>
+        <textarea
+          class="api-json mono"
+          rows="12"
+          [value]="apiPayload()"
+          (input)="apiPayload.set($any($event.target).value)"
+        ></textarea>
+        <button mat-flat-button class="btn-copper" type="button" [disabled]="importing()" (click)="importFromApi()">
+          <mat-icon>cloud_download</mat-icon>
+          Terima payload &amp; buat draft
+        </button>
+      </div>
+    }
+  </section>
+}
+
+<form class="card form" [formGroup]="form">
+  <div class="grid-3">
+    <mat-form-field appearance="outline">
+      <mat-label>Supplier</mat-label>
+      <mat-select formControlName="supplierId">
+        @for (s of suppliers(); track s.id) {
+          <mat-option [value]="s.id">{{ s.supplierCode }} — {{ s.supplierName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Warehouse</mat-label>
+      <mat-select formControlName="warehouseId">
+        @for (w of warehouses(); track w.id) {
+          <mat-option [value]="w.id">{{ w.warehouseCode }} — {{ w.warehouseName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Inbound Date</mat-label>
+      <input matInput type="date" formControlName="inboundDate" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Inspection Type *</mat-label>
+      <mat-select formControlName="inspectionType">
+        <mat-option [value]="'QI'">QI — masuk Quality Inspection</mat-option>
+        <mat-option [value]="'UU'">UU — langsung Unrestricted Use</mat-option>
+      </mat-select>
+      <mat-hint>QI: karton ke antrean QI. UU: langsung Available untuk Outbound.</mat-hint>
+    </mat-form-field>
+  </div>
+  <mat-form-field appearance="outline" class="full">
+    <mat-label>Notes</mat-label>
+    <textarea matInput rows="2" formControlName="notes"></textarea>
+  </mat-form-field>
+
+  @if (doc()?.qiDocNo) {
+    <p class="qi-link">
+      Dokumen QI:
+      <a [routerLink]="['/operations/qi', doc()!.qiHeaderId]">{{ doc()!.qiDocNo }}</a>
+    </p>
+  }
+
+  <div class="section-head">
+    <h3>Lines</h3>
+    @if (editable()) {
+      <button mat-stroked-button type="button" (click)="addLine()">
+        <mat-icon>add</mat-icon>
+        Tambah Baris
+      </button>
+    }
+  </div>
+
+  <div formArrayName="lines" class="lines">
+    @for (line of lines.controls; track $index; let i = $index) {
+      <div class="line" [formGroupName]="i">
+        <mat-form-field appearance="outline">
+          <mat-label>Item</mat-label>
+          <mat-select formControlName="itemId">
+            @for (it of items(); track it.id) {
+              <mat-option [value]="it.id">{{ it.itemCode }} — {{ it.itemName }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Qty Karton</mat-label>
+          <input matInput type="number" min="1" formControlName="quantity" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Location</mat-label>
+          <mat-select formControlName="locationId">
+            @for (loc of locations(); track loc.id) {
+              <mat-option [value]="loc.id">{{ loc.locationCode }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Expired Date *</mat-label>
+          <input matInput type="date" formControlName="expiredDate" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>No Batch</mat-label>
+          <input matInput formControlName="batchNo" placeholder="Batch No" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Status Karton *</mat-label>
+          <mat-select formControlName="qcStatus">
+            <mat-option [value]="'QI'">QI</mat-option>
+            <mat-option [value]="'UU'">UU</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>UU Date</mat-label>
+          <input matInput type="date" formControlName="uuDate" />
+          <mat-hint>Wajib jika status UU</mat-hint>
+        </mat-form-field>
+        <div class="line-meta mono">BC: {{ line.get('barcodes')?.value?.length || 0 }}</div>
+        @if (editable()) {
+          <button mat-icon-button type="button" color="warn" (click)="removeLine(i)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+</form>
+
+@if (editable()) {
+  <div class="sticky-actions no-print">
+    <div class="sticky-actions__inner">
+      <div class="sticky-actions__hint">
+        Alur ringkas: isi baris → <strong>Simpan &amp; Konfirmasi</strong> (auto generate barcode/QR).
+      </div>
+      <div class="actions">
+        <button mat-stroked-button type="button" [disabled]="busy()" (click)="saveDraft()">
+          Simpan Draft
+        </button>
+        <button mat-stroked-button type="button" [disabled]="busy()" (click)="generateBarcodes()">
+          <mat-icon>qr_code_2</mat-icon>
+          Generate Barcode / QR
+        </button>
+        <button
+          mat-flat-button
+          class="btn-copper"
+          type="button"
+          [disabled]="busy()"
+          (click)="saveAndConfirm()"
+        >
+          <mat-icon>check_circle</mat-icon>
+          Simpan &amp; Konfirmasi
+        </button>
+        @if (doc()) {
+          <button mat-button type="button" color="warn" [disabled]="busy()" (click)="cancelDoc()">
+            Batalkan
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+@if (doc()?.lines?.length) {
+  <section class="card barcodes print-section">
+    <div class="section-head">
+      <h3>Barcode &amp; QR Labels</h3>
+      <button mat-stroked-button type="button" class="no-print" (click)="printLabels()">
+        <mat-icon>print</mat-icon>
+        Cetak Semua
+      </button>
+    </div>
+    @for (line of doc()!.lines; track line.id) {
+      @if (line.barcodes.length) {
+        <h4 class="line-title mono">
+          {{ line.itemCode }} → {{ line.locationCode }} · {{ line.qcStatus }} · Batch
+          {{ line.batchNo || '-' }} · Exp {{ line.expiredDate || '-' }} ({{ line.barcodes.length }})
+        </h4>
+        <div class="label-grid">
+          @for (code of line.barcodes; track code) {
+            <app-barcode-label
+              [barcode]="code"
+              [itemCode]="line.itemCode"
+              [itemName]="line.itemName"
+              [warehouseCode]="doc()!.warehouseCode"
+              [locationCode]="line.locationCode"
+              [showPrint]="false"
+            />
+          }
+        </div>
+      }
+    }
+  </section>
+}

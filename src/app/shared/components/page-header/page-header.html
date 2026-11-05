@@ -1,0 +1,21 @@
+<header class="hero">
+  <div class="hero__glow" aria-hidden="true"></div>
+  <div class="hero__top">
+    <div class="hero__crumbs">
+      <span class="crumb">KartonDock</span>
+      <span class="dot">•</span>
+      <span class="crumb crumb--current">{{ title() }}</span>
+    </div>
+  </div>
+  <div class="hero__body">
+    <div class="hero__text">
+      <h1>{{ title() }}</h1>
+      @if (subtitle()) {
+        <p>{{ subtitle() }}</p>
+      }
+    </div>
+    <div class="hero__actions">
+      <ng-content />
+    </div>
+  </div>
+</header>

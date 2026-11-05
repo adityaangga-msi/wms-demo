@@ -1,0 +1,56 @@
+.label-card {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  border: 1px solid var(--kd-border);
+  border-radius: var(--kd-radius);
+  align-items: flex-start;
+  min-width: 220px;
+}
+
+.label-card__meta .row {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.15rem;
+}
+
+.label-card__meta .k {
+  color: var(--kd-muted);
+  min-width: 3.2rem;
+}
+
+.label-card__meta .v {
+  color: var(--kd-ink);
+  font-weight: 600;
+}
+
+.mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.label-card__codes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.label-card__svg {
+  max-width: 100%;
+}
+
+.label-card__qr {
+  border-radius: 8px;
+  border: 1px solid var(--kd-border-subtle);
+}
+
+.label-card__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+  width: 100%;
+}

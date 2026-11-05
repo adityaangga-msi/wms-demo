@@ -1,0 +1,186 @@
+<app-page-header
+  title="Dashboard Operasional Gudang"
+  subtitle="Monitor stok karton, arus inbound/outbound, adjustment, dan alert stok rendah secara real-time dari data lokal."
+>
+  <a mat-flat-button class="btn-hero-light" routerLink="/operations/inbound">
+    <mat-icon>add</mat-icon>
+    Buat Inbound
+  </a>
+</app-page-header>
+
+@if (loading()) {
+  <div class="card"><app-page-loader label="Memuat dashboard…" /></div>
+} @else if (kpi(); as k) {
+  <section class="kpi-grid">
+    <article class="kpi-card tone-steel">
+      <div class="kpi-card__head">
+        <div class="kpi-icon"><mat-icon>inventory_2</mat-icon></div>
+        <span class="kpi-pill">Master</span>
+      </div>
+      <div class="kpi-card__value">{{ k.totalItem }}</div>
+      <div class="kpi-card__label">Total Item</div>
+      <div class="kpi-bar"><span [style.width.%]="100"></span></div>
+      <a class="kpi-link" routerLink="/master/items">Lihat item master →</a>
+    </article>
+
+    <article class="kpi-card tone-amber">
+      <div class="kpi-card__head">
+        <div class="kpi-icon"><mat-icon>warehouse</mat-icon></div>
+        <span class="kpi-pill">{{ k.totalWarehouse }} WH</span>
+      </div>
+      <div class="kpi-card__value">{{ k.totalInventory }}</div>
+      <div class="kpi-card__label">Inventory On-Hand (Karton)</div>
+      <div class="kpi-bar">
+        <span [style.width.%]="inventoryFill(k)"></span>
+      </div>
+      <a class="kpi-link" routerLink="/inventory/summary">Lihat ringkasan stok →</a>
+    </article>
+
+    <article class="kpi-card tone-success">
+      <div class="kpi-card__head">
+        <div class="kpi-icon"><mat-icon>check_circle</mat-icon></div>
+        <span class="kpi-pill">{{ availablePct(k) }}% ready</span>
+      </div>
+      <div class="kpi-card__value">{{ k.totalAvailable }}</div>
+      <div class="kpi-card__label">Available Carton</div>
+      <div class="kpi-bar"><span [style.width.%]="availablePct(k)"></span></div>
+      <a class="kpi-link" routerLink="/inventory/detail">Lihat detail karton →</a>
+    </article>
+
+    <article class="kpi-card tone-warn">
+      <div class="kpi-card__head">
+        <div class="kpi-icon"><mat-icon>swap_vert</mat-icon></div>
+        <span class="kpi-pill">Hari ini</span>
+      </div>
+      <div class="kpi-card__value">{{ k.inboundToday }} / {{ k.outboundToday }}</div>
+      <div class="kpi-card__label">Inbound / Outbound Hari Ini</div>
+      <div class="kpi-bar dual">
+        <span class="in" [style.width.%]="flowShare(k.inboundToday, k.outboundToday)"></span>
+      </div>
+      <div class="kpi-sub">Adjustment hari ini: <strong>{{ k.movementToday }}</strong> karton</div>
+    </article>
+  </section>
+
+  <section class="kpi-grid qi-kpi">
+    <article class="kpi-card tone-steel">
+      <div class="kpi-card__value">{{ k.qiAwaiting }}</div>
+      <div class="kpi-card__label">Awaiting QI</div>
+      <a class="kpi-link" routerLink="/operations/qi">Buka Quality Inspection →</a>
+    </article>
+    <article class="kpi-card tone-success">
+      <div class="kpi-card__value">{{ k.qiPassRate }}%</div>
+      <div class="kpi-card__label">QI Pass Rate</div>
+      <div class="kpi-sub">Passed {{ k.qiPassed }} / Inspected {{ k.qiInspected }}</div>
+    </article>
+    <article class="kpi-card tone-warn">
+      <div class="kpi-card__value">{{ k.qiRejectRate }}%</div>
+      <div class="kpi-card__label">QI Reject Rate</div>
+      <div class="kpi-sub">Rejected {{ k.qiRejected }} · Quarantine {{ k.qiQuarantine }}</div>
+    </article>
+    <article class="kpi-card tone-amber">
+      <div class="kpi-card__value">{{ k.invUu }} / {{ k.invQiPending }}</div>
+      <div class="kpi-card__label">UU / QI Pending</div>
+      <div class="kpi-sub">Block {{ k.invBlocked }} · Return {{ k.invReturnPending }} · Scrap {{ k.invScrapPending }}</div>
+      <a class="kpi-link" routerLink="/inventory/warehouse-map">Warehouse map →</a>
+    </article>
+  </section>
+
+  <section class="charts">
+    <div class="card chart-card">
+      <div class="card-head">
+        <h3>Inbound vs Outbound (7 hari)</h3>
+        <span class="chip">Trend</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas baseChart [type]="'line'" [data]="lineData()" [options]="lineOptions"></canvas>
+      </div>
+    </div>
+    <div class="card chart-card">
+      <div class="card-head">
+        <h3>Inventory Status Distribution</h3>
+        <span class="chip">Share</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas baseChart [type]="'doughnut'" [data]="doughnutData()" [options]="doughnutOptions"></canvas>
+      </div>
+    </div>
+    <div class="card chart-card wide">
+      <div class="card-head">
+        <h3>QI Pass vs Reject</h3>
+        <span class="chip">Quality</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas baseChart [type]="'bar'" [data]="barData()" [options]="barOptions"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="tables">
+    <div class="card">
+      <div class="card-head">
+        <h3>Transaksi Terbaru</h3>
+        <a class="text-link" routerLink="/reports/transactions">Semua riwayat →</a>
+      </div>
+      <div class="table-wrap"><table mat-table [dataSource]="recent()" class="wms-table">
+        <ng-container matColumnDef="docNo">
+          <th mat-header-cell *matHeaderCellDef>Doc No</th>
+          <td mat-cell *matCellDef="let row" class="mono">{{ row.docNo }}</td>
+        </ng-container>
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef>Type</th>
+          <td mat-cell *matCellDef="let row">{{ row.type }}</td>
+        </ng-container>
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>Date</th>
+          <td mat-cell *matCellDef="let row">{{ row.date | date: 'dd MMM yyyy HH:mm' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="totalCarton">
+          <th mat-header-cell *matHeaderCellDef>Carton</th>
+          <td mat-cell *matCellDef="let row">{{ row.totalCarton }}</td>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let row"><app-status-badge [status]="row.status" /></td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="recentCols"></tr>
+        <tr mat-row *matRowDef="let row; columns: recentCols"></tr>
+      </table></div>
+      @if (!recent().length) {
+        <p class="empty">Belum ada transaksi.</p>
+      }
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>
+          <mat-icon>warning</mat-icon>
+          Low Stock Alerts
+        </h3>
+        <span class="chip chip-warn">≤ 3 karton</span>
+      </div>
+      <div class="table-wrap"><table mat-table [dataSource]="alerts()" class="wms-table">
+        <ng-container matColumnDef="itemCode">
+          <th mat-header-cell *matHeaderCellDef>Item</th>
+          <td mat-cell *matCellDef="let row" class="mono">{{ row.itemCode }}</td>
+        </ng-container>
+        <ng-container matColumnDef="itemName">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let row">{{ row.itemName }}</td>
+        </ng-container>
+        <ng-container matColumnDef="warehouseCode">
+          <th mat-header-cell *matHeaderCellDef>WH</th>
+          <td mat-cell *matCellDef="let row" class="mono">{{ row.warehouseCode }}</td>
+        </ng-container>
+        <ng-container matColumnDef="availableCarton">
+          <th mat-header-cell *matHeaderCellDef>Available</th>
+          <td mat-cell *matCellDef="let row">{{ row.availableCarton }}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="alertCols"></tr>
+        <tr mat-row *matRowDef="let row; columns: alertCols"></tr>
+      </table></div>
+      @if (!alerts().length) {
+        <p class="empty">Tidak ada alert stok rendah.</p>
+      }
+    </div>
+  </section>
+}

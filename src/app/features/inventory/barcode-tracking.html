@@ -1,0 +1,160 @@
+<app-page-header
+  title="Barcode Tracking"
+  subtitle="Scan barcode untuk melihat riwayat perjalanan karton."
+/>
+
+<div class="card">
+  <app-barcode-scanner (scanned)="onScan($event)" />
+</div>
+
+@if (carton(); as c) {
+  <div class="card result">
+    <div class="result__head">
+      <h3 class="mono">{{ c.barcode }}</h3>
+      <app-status-badge [status]="c.status" />
+      <app-status-badge [status]="c.inventoryStatus || 'UU'" />
+    </div>
+    <dl class="meta">
+      <div><dt>Item</dt><dd class="mono">{{ c.itemCode }} — {{ c.itemName }}</dd></div>
+      <div><dt>Warehouse</dt><dd class="mono">{{ c.warehouseCode }}</dd></div>
+      <div><dt>Location</dt><dd class="mono">{{ c.locationCode }}</dd></div>
+      <div><dt>Inbound Doc</dt><dd class="mono">{{ c.inboundDocNo }}</dd></div>
+      <div>
+        <dt>QI Document</dt>
+        <dd class="mono">
+          @if (c.qiHeaderId) {
+            <a [routerLink]="['/operations/qi', c.qiHeaderId]">{{ c.qiDocNo }}</a>
+          } @else {
+            —
+          }
+        </dd>
+      </div>
+      <div><dt>Outbound Doc</dt><dd class="mono">{{ c.outboundDocNo || '—' }}</dd></div>
+    </dl>
+    <app-barcode-label
+      [barcode]="c.barcode"
+      [itemCode]="c.itemCode"
+      [itemName]="c.itemName"
+      [warehouseCode]="c.warehouseCode"
+      [locationCode]="c.locationCode"
+    />
+  </div>
+
+  @if (events().length) {
+    <div class="card chat-card">
+      <div class="date-strip">
+        <div class="pill tone-in">
+          <span>Inbound</span>
+          <b>{{ inboundAt() ? (inboundAt() | date: 'dd MMM yyyy HH:mm') : '—' }}</b>
+        </div>
+        <div class="pill tone-qi">
+          <span>QI</span>
+          <b>{{ qiAt() ? (qiAt() | date: 'dd MMM yyyy HH:mm') : '—' }}</b>
+        </div>
+        <div class="pill tone-adj">
+          <span>Adjustment</span>
+          <b>{{ adjustAt() ? (adjustAt() | date: 'dd MMM yyyy HH:mm') : '—' }}</b>
+        </div>
+        <div class="pill tone-out">
+          <span>Outbound</span>
+          <b>{{ outboundAt() ? (outboundAt() | date: 'dd MMM yyyy HH:mm') : '—' }}</b>
+        </div>
+      </div>
+      @if (dwellLabel()) {
+        <p class="dwell">{{ dwellLabel() }}</p>
+      }
+
+      <div class="chat-thread" role="log" aria-label="Timeline perjalanan karton">
+        @for (day of chatDays(); track day.dayKey) {
+          <div class="day-sep"><span>{{ day.dayLabel }}</span></div>
+          @for (e of day.items; track e.id) {
+            <div class="chat-row" [class]="(e.side === 'right' ? 'right ' : '') + 'tone-' + stageClass(e.stage)">
+              <div class="avatar" aria-hidden="true">
+                <mat-icon>{{ e.icon }}</mat-icon>
+              </div>
+              <div class="bubble">
+                <div class="bubble-head">
+                  <b>{{ e.title }}</b>
+                  <time>{{ e.timeLabel }}</time>
+                </div>
+                <div class="bubble-msg">
+                  <div><span>Tanggal</span> {{ e.when | date: 'dd MMM yyyy HH:mm' }}</div>
+                  <div><span>Dokumen</span> <code class="mono">{{ e.docNo }}</code></div>
+                  <div><span>Oleh</span> {{ e.who }}</div>
+                  <div><span>Qty</span> {{ e.qty }} karton</div>
+                  <div><span>Lokasi</span> {{ e.where }}</div>
+                  <div><span>Status</span> {{ e.status }}</div>
+                  @if (e.notes && e.notes !== '—') {
+                    <div class="notes">{{ e.notes }}</div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Detail Ledger</h3>
+      <table mat-table [dataSource]="history()" class="wms-table">
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>Kapan</th>
+          <td mat-cell *matCellDef="let row">{{ row.transactionDate | date: 'dd MMM yyyy HH:mm' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef>Event</th>
+          <td mat-cell *matCellDef="let row">{{ row.transactionType }}</td>
+        </ng-container>
+        <ng-container matColumnDef="ref">
+          <th mat-header-cell *matHeaderCellDef>Dokumen</th>
+          <td mat-cell *matCellDef="let row" class="mono">{{ row.referenceDocNo }}</td>
+        </ng-container>
+        <ng-container matColumnDef="who">
+          <th mat-header-cell *matHeaderCellDef>Oleh</th>
+          <td mat-cell *matCellDef="let row">{{ row.createdBy || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="qty">
+          <th mat-header-cell *matHeaderCellDef>Qty</th>
+          <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>
+        </ng-container>
+        <ng-container matColumnDef="where">
+          <th mat-header-cell *matHeaderCellDef>Dari → Ke</th>
+          <td mat-cell *matCellDef="let row">{{ whereLabel(row) }}</td>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.previousStatus || row.previousCartonStatus || '—' }}
+            →
+            {{ row.newStatus || row.newCartonStatus || '—' }}
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="notes">
+          <th mat-header-cell *matHeaderCellDef>Keterangan</th>
+          <td mat-cell *matCellDef="let row">{{ row.notes || '—' }}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="histCols"></tr>
+        <tr mat-row *matRowDef="let row; columns: histCols"></tr>
+      </table>
+    </div>
+  } @else {
+    <div class="card empty">Belum ada riwayat transaksi untuk barcode ini.</div>
+  }
+
+  @if (photos().length) {
+    <div class="card">
+      <h3>Photo Evidence</h3>
+      <div class="photos">
+        @for (p of photos(); track p.id) {
+          <figure>
+            <img [src]="p.url" [alt]="p.fileName" />
+            <figcaption>{{ p.fileName }}</figcaption>
+          </figure>
+        }
+      </div>
+    </div>
+  }
+} @else if (notFound()) {
+  <div class="card empty">Barcode tidak terdaftar di inventory.</div>
+}

@@ -1,0 +1,87 @@
+<app-page-header title="Preferensi">
+  <a mat-stroked-button class="btn-back" routerLink="/settings">
+    <mat-icon>arrow_back</mat-icon>
+    Kembali ke pengaturan
+  </a>
+</app-page-header>
+
+<section class="panel">
+  <div class="section">
+    <div class="section__text">
+      <h2>Bahasa</h2>
+      <p>Pilih bahasa antarmuka. Perubahan langsung berlaku.</p>
+    </div>
+    <div class="lang-pills">
+      <button
+        type="button"
+        class="lang-pill"
+        [class.lang-pill--active]="prefs.language() === 'id'"
+        (click)="prefs.setLanguage('id')"
+      >
+        <span class="code">ID</span>
+        Bahasa Indonesia
+      </button>
+      <button
+        type="button"
+        class="lang-pill"
+        [class.lang-pill--active]="prefs.language() === 'en'"
+        (click)="prefs.setLanguage('en')"
+      >
+        <span class="code">EN</span>
+        English
+      </button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section__text">
+      <h2>Tema</h2>
+      <p>Pilih tema terang atau gelap. Pilihan disimpan di perangkat ini.</p>
+    </div>
+    <div class="lang-pills">
+      <button
+        type="button"
+        class="lang-pill"
+        [class.lang-pill--active]="prefs.theme() === 'light'"
+        (click)="prefs.setTheme('light')"
+      >
+        <mat-icon>light_mode</mat-icon>
+        Terang
+      </button>
+      <button
+        type="button"
+        class="lang-pill"
+        [class.lang-pill--active]="prefs.theme() === 'dark'"
+        (click)="prefs.setTheme('dark')"
+      >
+        <mat-icon>dark_mode</mat-icon>
+        Gelap
+      </button>
+    </div>
+  </div>
+
+  <div class="section section--last">
+    <div class="section__text">
+      <h2>Animasi</h2>
+      <p>Aktifkan animasi dan transisi. Dimatikan hanya jika Anda lebih nyaman tanpa gerakan.</p>
+    </div>
+    <div class="lang-pills">
+      <button
+        type="button"
+        class="lang-pill"
+        [class.lang-pill--active]="prefs.animation()"
+        (click)="prefs.setAnimation(true)"
+      >
+        Aktif
+      </button>
+      <button
+        type="button"
+        class="lang-pill"
+        [class.lang-pill--active]="!prefs.animation()"
+        (click)="prefs.setAnimation(false)"
+      >
+        Nonaktif
+      </button>
+    </div>
+  </div>
+</section>

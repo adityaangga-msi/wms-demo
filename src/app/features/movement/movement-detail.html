@@ -1,0 +1,217 @@
+<app-page-header
+  [title]="isNew() ? 'Buat Adjustment' : (doc()?.docNo || 'Adjustment')"
+  subtitle="Adjust tempat (pindah lokasi) atau qty stok — scan/quick pick, konfirmasi di halaman yang sama."
+>
+  <a mat-stroked-button routerLink="/operations/adjustment">Kembali</a>
+  @if (doc()) {
+    <app-status-badge [status]="doc()!.status" />
+  }
+</app-page-header>
+
+<form class="card" [formGroup]="form">
+  <div class="kind-row">
+    <span class="kind-label">Jenis adjust</span>
+    <mat-button-toggle-group formControlName="adjustKind" [disabled]="!!doc()">
+      <mat-button-toggle [value]="AdjustmentKind.Location">Tempat</mat-button-toggle>
+      <mat-button-toggle [value]="AdjustmentKind.Quantity">Quantity</mat-button-toggle>
+    </mat-button-toggle-group>
+    @if (form.controls.adjustKind.value === AdjustmentKind.Quantity) {
+      <mat-button-toggle-group formControlName="qtyDirection" [disabled]="!!doc()">
+        <mat-button-toggle [value]="QuantityAdjustDirection.Decrease">Kurangi (−)</mat-button-toggle>
+        <mat-button-toggle [value]="QuantityAdjustDirection.Increase">Tambah (+)</mat-button-toggle>
+      </mat-button-toggle-group>
+    }
+  </div>
+
+  <div class="grid-2">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ isLocation ? 'From Warehouse' : 'Warehouse' }}</mat-label>
+      <mat-select formControlName="fromWarehouseId">
+        @for (w of warehouses(); track w.id) {
+          <mat-option [value]="w.id">{{ w.warehouseCode }} — {{ w.warehouseName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>{{ isLocation ? 'From Location' : 'Location' }}</mat-label>
+      <mat-select formControlName="fromLocationId">
+        @for (loc of fromLocations(); track loc.id) {
+          <mat-option [value]="loc.id">{{ loc.locationCode }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (isLocation) {
+      <mat-form-field appearance="outline">
+        <mat-label>To Warehouse</mat-label>
+        <mat-select formControlName="toWarehouseId">
+          @for (w of warehouses(); track w.id) {
+            <mat-option [value]="w.id">{{ w.warehouseCode }} — {{ w.warehouseName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>To Location</mat-label>
+        <mat-select formControlName="toLocationId">
+          @for (loc of toLocations(); track loc.id) {
+            <mat-option [value]="loc.id">{{ loc.locationCode }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Adjustment Date</mat-label>
+      <input matInput type="date" formControlName="movementDate" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Notes</mat-label>
+      <input matInput formControlName="notes" />
+    </mat-form-field>
+  </div>
+</form>
+
+@if (editable() && usesScan) {
+  <div class="card">
+    <h3>
+      Scan Barcode
+      @if (doc(); as d) {
+        ({{ d.fromLocationCode }})
+      }
+    </h3>
+    <p class="hint">
+      @if (isLocation) {
+        Pilih from/to lalu scan atau quick pick — draft dibuat otomatis, lokasi berubah saat konfirmasi.
+      } @else {
+        Scan/quick pick karton Available di lokasi ini. Konfirmasi → status Inactive (qty −).
+      }
+    </p>
+    <app-barcode-scanner
+      label="Scan / ketik barcode atau QR"
+      [disabled]="scanning() || busy()"
+      (scanned)="onScan($event)"
+    />
+
+    @if (availableCartons().length) {
+      <div class="quick-picks">
+        <span>Quick pick Available:</span>
+        <div class="chips">
+          @for (c of availableCartons(); track c.id) {
+            <button
+              type="button"
+              class="pick-chip"
+              [disabled]="scanning() || busy()"
+              (click)="onScan(c.barcode)"
+            >
+              <span class="mono">{{ c.barcode }}</span>
+              <em>{{ c.itemCode }} · {{ c.locationCode }}</em>
+            </button>
+          }
+        </div>
+      </div>
+    } @else {
+      <p class="empty">Tidak ada karton Available di lokasi terpilih (atau sudah di-scan).</p>
+    }
+  </div>
+}
+
+@if (editable() && isQtyIncrease) {
+  <div class="card">
+    <h3>Tambah Quantity</h3>
+    <p class="hint">Pilih item + qty. Saat konfirmasi, barcode/QR karton baru digenerate di lokasi ini.</p>
+    <form class="qty-add" [formGroup]="qtyForm" (ngSubmit)="addQtyLine()">
+      <mat-form-field appearance="outline">
+        <mat-label>Item</mat-label>
+        <mat-select formControlName="itemId">
+          @for (it of items(); track it.id) {
+            <mat-option [value]="it.id">{{ it.itemCode }} — {{ it.itemName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Qty (karton)</mat-label>
+        <input matInput type="number" min="1" formControlName="quantity" />
+      </mat-form-field>
+      <button mat-flat-button class="btn-copper" type="submit" [disabled]="busy()">
+        <mat-icon>add</mat-icon>
+        Tambah
+      </button>
+    </form>
+  </div>
+}
+
+@if (doc(); as d) {
+  <div class="card">
+    <h3>
+      Lines ({{ d.lines.length }})
+      <span class="kind-chip">{{ kindLabel(d) }}</span>
+    </h3>
+    <table mat-table [dataSource]="d.lines" class="wms-table">
+      <ng-container matColumnDef="barcode">
+        <th mat-header-cell *matHeaderCellDef>Barcode</th>
+        <td mat-cell *matCellDef="let row" class="mono">
+          {{ row.barcode || (row.barcodes?.length ? row.barcodes.join(', ') : '— (generate saat confirm)') }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="itemCode">
+        <th mat-header-cell *matHeaderCellDef>Item</th>
+        <td mat-cell *matCellDef="let row" class="mono">{{ row.itemCode }}</td>
+      </ng-container>
+      <ng-container matColumnDef="itemName">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let row">{{ row.itemName }}</td>
+      </ng-container>
+      <ng-container matColumnDef="qty">
+        <th mat-header-cell *matHeaderCellDef>Qty</th>
+        <td mat-cell *matCellDef="let row">{{ lineQty(row) }}</td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          @if (editable()) {
+            <button mat-icon-button type="button" color="warn" (click)="removeLine(row.id)">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="lineCols"></tr>
+      <tr mat-row *matRowDef="let row; columns: lineCols"></tr>
+    </table>
+    @if (!d.lines.length) {
+      <p class="empty">Belum ada baris.</p>
+    }
+  </div>
+}
+
+@if (editable()) {
+  <div class="sticky-actions no-print">
+    <div class="sticky-actions__inner">
+      <div class="sticky-actions__hint">
+        Konfirmasi langsung di halaman ini — tidak perlu kembali ke monitoring.
+      </div>
+      <div class="actions">
+        @if (!doc()) {
+          <button mat-stroked-button type="button" [disabled]="busy()" (click)="createDraft()">
+            Buat Draft
+          </button>
+        }
+        <button
+          mat-flat-button
+          class="btn-copper"
+          type="button"
+          [disabled]="busy() || !doc()?.lines?.length"
+          (click)="confirm()"
+        >
+          <mat-icon>check_circle</mat-icon>
+          Konfirmasi Adjustment
+        </button>
+        @if (doc()) {
+          <button mat-button type="button" color="warn" [disabled]="busy()" (click)="cancelDoc()">
+            Batalkan
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

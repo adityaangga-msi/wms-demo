@@ -1,0 +1,379 @@
+@use '@angular/material' as mat;
+
+:root {
+  /* Warehouse theme + ProAct-like motion/surface system */
+  --kd-ink: #0b1728;
+  --kd-ink-soft: #1a2a40;
+  --kd-panel: #132033;
+  --kd-amber: #f0a202;
+  --kd-amber-deep: #d98900;
+  --kd-steel: #3d8fd1;
+  --kd-steel-soft: #e8f2fb;
+  --kd-success: #1f9d6c;
+  --kd-success-soft: #e4f7ef;
+  --kd-warn: #e67e22;
+  --kd-warn-soft: #fff1e4;
+  --kd-danger: #d64545;
+  --kd-danger-soft: #fdeaea;
+  --kd-mist: #f3f5f8;
+  --kd-canvas-top: #e9eef5;
+  --kd-border: #d6deea;
+  --kd-border-subtle: #e2e8f0;
+  --kd-card: #ffffff;
+  --kd-muted: #5a6b82;
+  --kd-text: #101b2b;
+  --kd-radius: 20px;
+  --kd-radius-sm: 14px;
+  --kd-radius-md: 10px;
+  --kd-shadow: 0 2px 4px rgba(16, 27, 43, 0.05), 0 12px 32px rgba(16, 27, 43, 0.08);
+  --kd-shadow-sm: 0 1px 2px rgba(16, 27, 43, 0.04), 0 3px 10px rgba(16, 27, 43, 0.05);
+  --kd-font: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --kd-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --kd-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --kd-copper: var(--kd-amber-deep);
+  --kd-mint: var(--kd-steel);
+  --kd-motion-fast: 0.12s;
+  --kd-motion-normal: 0.2s;
+  --kd-motion-slow: 0.32s;
+  --kd-ease: cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+html {
+  height: 100%;
+  scroll-behavior: smooth;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$orange-palette,
+      ),
+      typography: (
+        plain-family: var(--kd-font),
+        brand-family: var(--kd-display),
+      ),
+      density: 0,
+    )
+  );
+}
+
+body {
+  color-scheme: light;
+  background:
+    linear-gradient(180deg, var(--kd-canvas-top) 0%, var(--kd-mist) 340px);
+  background-attachment: fixed;
+  color: var(--kd-text);
+  font-family: var(--kd-font);
+  margin: 0;
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+.material-symbols-outlined,
+.mat-icon {
+  font-family: 'Material Symbols Outlined', 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono {
+  font-family: var(--kd-mono) !important;
+  letter-spacing: 0.01em;
+}
+
+.card {
+  background: var(--kd-card);
+  border: 1px solid var(--kd-border);
+  border-radius: var(--kd-radius);
+  padding: 1.15rem 1.25rem;
+  box-shadow: var(--kd-shadow-sm);
+  transition:
+    box-shadow var(--kd-motion-fast) var(--kd-ease),
+    border-color var(--kd-motion-fast) var(--kd-ease),
+    transform var(--kd-motion-fast) var(--kd-ease);
+}
+
+.card:has(table.wms-table) {
+  padding-bottom: 0.65rem;
+}
+
+.card:has(table.wms-table) table.wms-table {
+  margin: 0 -0.35rem;
+  width: calc(100% + 0.7rem);
+}
+
+.card .filters,
+.card .search,
+.card form.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.card-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.table-wrap {
+  overflow: auto;
+  border: 1px solid var(--kd-border-subtle);
+  border-radius: var(--kd-radius-md);
+  background: #fff;
+}
+
+.table-wrap .wms-table {
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.btn-copper.mat-mdc-unelevated-button,
+.btn-copper.mat-mdc-raised-button,
+button.btn-copper,
+a.btn-copper {
+  --mdc-filled-button-container-color: var(--kd-amber);
+  --mdc-filled-button-label-text-color: #132033;
+  background: var(--kd-amber) !important;
+  color: #132033 !important;
+  font-weight: 700 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 6px 16px rgba(240, 162, 2, 0.28) !important;
+  transition:
+    transform var(--kd-motion-fast) var(--kd-ease),
+    box-shadow var(--kd-motion-fast) var(--kd-ease) !important;
+}
+
+.btn-copper:hover {
+  transform: translateY(-1px);
+}
+
+.btn-hero-light.mat-mdc-unelevated-button,
+.btn-hero-light.mat-mdc-raised-button,
+button.btn-hero-light,
+a.btn-hero-light {
+  background: #fff !important;
+  color: var(--kd-ink) !important;
+  font-weight: 700 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
+}
+
+.mat-mdc-outlined-button,
+.mat-mdc-button {
+  border-radius: 999px !important;
+  transition:
+    background var(--kd-motion-fast) var(--kd-ease),
+    border-color var(--kd-motion-fast) var(--kd-ease),
+    color var(--kd-motion-fast) var(--kd-ease) !important;
+}
+
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  color: transparent !important;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-right-color: currentColor;
+  color: #132033;
+  animation: btn-spin 0.7s linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.wms-table {
+  width: 100%;
+  background: transparent;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  .mat-mdc-header-row {
+    background: #eaf0f8;
+  }
+
+  .mat-mdc-header-cell {
+    color: var(--kd-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 12px 14px !important;
+    border-bottom: 1px solid var(--kd-border) !important;
+    white-space: nowrap;
+  }
+
+  .mat-mdc-cell {
+    font-size: 0.84375rem;
+    padding: 12px 14px !important;
+    border-bottom: 1px solid var(--kd-border) !important;
+    color: var(--kd-text);
+  }
+
+  .mat-mdc-row {
+    transition: background var(--kd-motion-fast) var(--kd-ease);
+  }
+
+  .mat-mdc-row:hover {
+    background: rgba(16, 27, 43, 0.035);
+  }
+
+  .mat-mdc-row:last-child .mat-mdc-cell {
+    border-bottom: 0 !important;
+  }
+}
+
+.page-view {
+  animation: page-enter var(--kd-motion-slow) var(--kd-ease);
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.snack-success {
+  --mdc-snackbar-container-color: #176b4c;
+  --mdc-snackbar-supporting-text-color: #fff;
+  --mat-snack-bar-button-color: #d9f5ea;
+}
+
+.snack-error {
+  --mdc-snackbar-container-color: #9b2c1f;
+  --mdc-snackbar-supporting-text-color: #fff;
+  --mat-snack-bar-button-color: #ffe8e3;
+}
+
+.snack-info {
+  --mdc-snackbar-container-color: #1a5f7a;
+  --mdc-snackbar-supporting-text-color: #fff;
+  --mat-snack-bar-button-color: #dcecf5;
+}
+
+.kd-shortcuts-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 20px !important;
+  padding: 0.35rem 0.55rem 0.55rem;
+}
+
+html.motion-off,
+html.motion-off *,
+html.motion-off *::before,
+html.motion-off *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html.theme-dark {
+  --kd-mist: #0f1724;
+  --kd-canvas-top: #0b1220;
+  --kd-card: #152033;
+  --kd-border: #2a3b52;
+  --kd-border-subtle: #243247;
+  --kd-text: #e8eef8;
+  --kd-muted: #9aabbf;
+  --kd-ink: #f3f6fb;
+  --kd-ink-soft: #d7e0ec;
+  color-scheme: dark;
+
+  body {
+    background: linear-gradient(180deg, #0b1220 0%, #101b2b 340px);
+    color: var(--kd-text);
+  }
+
+  .card,
+  .panel,
+  .menu-list,
+  .table-wrap,
+  .demo-sheet {
+    background: var(--kd-card) !important;
+    border-color: var(--kd-border) !important;
+    color: var(--kd-text);
+  }
+
+  .wms-table .mat-mdc-header-row {
+    background: #1b2a3f;
+  }
+}
+
+.kd-profile-dialog .mat-mdc-dialog-container .mdc-dialog__surface,
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 20px !important;
+}
+
+@media print {
+  .sidebar,
+  .shell-top,
+  .route-progress,
+  .no-print,
+  .page-header__actions,
+  .actions,
+  app-barcode-scanner,
+  app-route-progress,
+  button {
+    display: none !important;
+  }
+
+  .shell {
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  .content,
+  .main {
+    padding: 0 !important;
+  }
+
+  .print-section,
+  .print-label,
+  .label-card {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}

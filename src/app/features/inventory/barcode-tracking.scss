@@ -1,0 +1,271 @@
+.card {
+  background: #fff;
+  border: 1px solid var(--kd-border);
+  border-radius: var(--kd-radius);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.result__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  h3 {
+    margin: 0;
+    color: var(--kd-ink);
+  }
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+
+  div {
+    background: #f4f8fa;
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+  }
+
+  dt {
+    font-size: 0.72rem;
+    color: var(--kd-muted);
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0.2rem 0 0;
+    color: var(--kd-ink);
+    font-weight: 600;
+  }
+}
+
+.empty {
+  color: var(--kd-muted);
+}
+
+.photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+
+  figure {
+    margin: 0;
+    border: 1px solid var(--kd-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    display: block;
+  }
+
+  figcaption {
+    font-size: 0.72rem;
+    padding: 0.35rem;
+    color: var(--kd-muted);
+  }
+}
+
+h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.chat-card {
+  background:
+    linear-gradient(180deg, #eef4fa 0%, #e8eef5 100%);
+  border-color: #d5e0ec;
+}
+
+.date-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.75rem;
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.pill {
+  background: #fff;
+  border: 1px solid #d7e2ef;
+  border-radius: 12px;
+  padding: 0.55rem 0.7rem;
+  border-top: 3px solid currentColor;
+
+  span {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  b {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.86rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  &.tone-in {
+    color: #1a4f8c;
+  }
+  &.tone-qi {
+    color: #c27803;
+  }
+  &.tone-adj {
+    color: #0f766e;
+  }
+  &.tone-out {
+    color: #b4231c;
+  }
+}
+
+.dwell {
+  margin: 0 0 0.85rem;
+  font-size: 0.86rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+.chat-thread {
+  max-height: min(68vh, 720px);
+  overflow: auto;
+  padding: 0.35rem 0.25rem 0.75rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.day-sep {
+  display: flex;
+  justify-content: center;
+  margin: 0.15rem 0;
+
+  span {
+    background: rgba(15, 23, 42, 0.72);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+  }
+}
+
+.chat-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.55rem;
+  max-width: min(560px, 92%);
+
+  &.right {
+    margin-left: auto;
+    flex-direction: row-reverse;
+  }
+
+  &.tone-in {
+    --tone: #1a4f8c;
+    --bubble: #e8f1fb;
+  }
+  &.tone-qi {
+    --tone: #c27803;
+    --bubble: #fff6e5;
+  }
+  &.tone-adj {
+    --tone: #0f766e;
+    --bubble: #e7f7f4;
+  }
+  &.tone-out {
+    --tone: #b4231c;
+    --bubble: #fdecec;
+  }
+}
+
+.avatar {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--tone, #1a4f8c);
+  color: #fff;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.bubble {
+  background: var(--bubble, #fff);
+  border: 1px solid color-mix(in srgb, var(--tone, #1a4f8c) 28%, #fff);
+  border-radius: 14px 14px 14px 4px;
+  padding: 0.65rem 0.8rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  min-width: 0;
+}
+
+.chat-row.right .bubble {
+  border-radius: 14px 14px 4px 14px;
+}
+
+.bubble-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+  margin-bottom: 0.45rem;
+
+  b {
+    color: var(--tone, #1a4f8c);
+    font-size: 0.92rem;
+  }
+
+  time {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+}
+
+.bubble-msg {
+  display: grid;
+  gap: 0.22rem;
+  font-size: 0.84rem;
+  color: #1e293b;
+
+  div {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 0.35rem;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .notes {
+    display: block;
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+    border-top: 1px dashed #cbd5e1;
+    color: #475569;
+    font-size: 0.8rem;
+  }
+}

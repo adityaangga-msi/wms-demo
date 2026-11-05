@@ -1,0 +1,294 @@
+@if (doc(); as d) {
+  <app-page-header [title]="d.docNo" subtitle="Quality Inspection — dokumen, checklist, foto evidence, disposition.">
+    <a mat-stroked-button routerLink="/operations/qi">Kembali</a>
+    <a mat-stroked-button [routerLink]="['/operations/inbound', d.inboundId]">Inbound {{ d.inboundDocNo }}</a>
+    <app-status-badge [status]="d.status" />
+  </app-page-header>
+
+  <section class="card">
+    <h3>Inbound Document Information</h3>
+    <div class="info-grid">
+      <div><dt>Inbound</dt><dd class="mono">{{ d.inboundDocNo }}</dd></div>
+      <div><dt>Supplier</dt><dd>{{ d.supplierCode }} — {{ d.supplierName }}</dd></div>
+      <div><dt>Warehouse</dt><dd class="mono">{{ d.warehouseCode }}</dd></div>
+      <div><dt>Inspection Type</dt><dd>QI</dd></div>
+      <div><dt>Total Carton</dt><dd>{{ d.totalCarton }}</dd></div>
+      <div><dt>Passed / Failed / Pending</dt><dd>{{ d.passedCarton }} / {{ d.failedCarton }} / {{ d.pendingCarton }}</dd></div>
+      <div><dt>Created By</dt><dd>{{ d.createdBy }}</dd></div>
+      <div><dt>Inspector</dt><dd>{{ d.inspectorName || '—' }}</dd></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h3>Document Inspection</h3>
+      @if (editable()) {
+        <button mat-stroked-button type="button" (click)="addSupportingDoc()">
+          <mat-icon>note_add</mat-icon>
+          Tambah jenis dokumen
+        </button>
+      }
+    </div>
+    <p class="doc-hint">Upload file PDF/gambar di kolom bawah tiap jenis dokumen, lalu View → Verify/Reject.</p>
+    @if (!d.supportingDocs?.length) {
+      <p class="warn-block">Belum ada slot dokumen. @if (editable()) { Klik “Tambah jenis dokumen”. }</p>
+    }
+    <div class="doc-list">
+      @for (docRow of d.supportingDocs; track docRow.id) {
+        <div class="doc-card" [class.missing]="!docHasFile(docRow)">
+          <div class="doc-card-top">
+            <div class="doc-main">
+              <strong>{{ docRow.docType }}</strong>
+              <div class="muted mono">{{ docHasFile(docRow) ? docRow.fileName : 'Belum ada file' }}</div>
+            </div>
+            <app-status-badge [status]="docRow.verificationStatus" />
+          </div>
+
+          @if (editable()) {
+            <label class="doc-upload">
+              <mat-icon>cloud_upload</mat-icon>
+              <div class="doc-upload-text">
+                <span class="doc-upload-title">
+                  {{ docHasFile(docRow) ? 'Ganti file' : 'Upload file' }}
+                </span>
+                <span class="doc-upload-sub">Klik di sini — PDF / JPG / PNG (maks 8 MB)</span>
+              </div>
+              <input
+                type="file"
+                accept=".pdf,image/jpeg,image/png,image/webp,application/pdf"
+                (change)="onSupportingDocSelected($event, docRow.id)"
+              />
+            </label>
+          }
+
+          <div class="doc-actions">
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="!docHasFile(docRow)"
+              (click)="viewDoc(docRow)"
+            >
+              <mat-icon>visibility</mat-icon>
+              View
+            </button>
+            @if (editable()) {
+              <button
+                mat-flat-button
+                class="btn-copper"
+                type="button"
+                [disabled]="!docHasFile(docRow)"
+                (click)="verifyDoc(docRow.id, QiDocVerificationStatus.Verified)"
+              >
+                Verify
+              </button>
+              <button
+                mat-button
+                type="button"
+                color="warn"
+                (click)="verifyDoc(docRow.id, QiDocVerificationStatus.Rejected)"
+              >
+                Reject
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h3>Carton Inspection</h3>
+      @if (editable()) {
+        <div class="actions">
+          <button mat-stroked-button type="button" (click)="selectAllPending()">Pilih Pending</button>
+          <button mat-flat-button class="btn-copper" type="button" [disabled]="busy()" (click)="bulkPass()">
+            Bulk Pass → UU
+          </button>
+        </div>
+      }
+    </div>
+
+    <table mat-table [dataSource]="d.details" class="wms-table">
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          @if (editable() && row.inspectionStatus === InspectionResult.Pending) {
+            <mat-checkbox
+              [checked]="selected().has(row.id)"
+              (change)="toggleSelect(row.id)"
+            />
+          }
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="barcode">
+        <th mat-header-cell *matHeaderCellDef>Barcode</th>
+        <td mat-cell *matCellDef="let row" class="mono">
+          <a [routerLink]="['/inventory/barcode-tracking']" [queryParams]="{ b: row.barcode }">{{ row.barcode }}</a>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="item">
+        <th mat-header-cell *matHeaderCellDef>Item</th>
+        <td mat-cell *matCellDef="let row">{{ row.itemCode }} — {{ row.itemName }}</td>
+      </ng-container>
+      <ng-container matColumnDef="location">
+        <th mat-header-cell *matHeaderCellDef>Location</th>
+        <td mat-cell *matCellDef="let row" class="mono">{{ row.locationCode }}</td>
+      </ng-container>
+      <ng-container matColumnDef="inspectionStatus">
+        <th mat-header-cell *matHeaderCellDef>Inspection</th>
+        <td mat-cell *matCellDef="let row"><app-status-badge [status]="row.inspectionStatus" /></td>
+      </ng-container>
+      <ng-container matColumnDef="disposition">
+        <th mat-header-cell *matHeaderCellDef>Result / Disposition</th>
+        <td mat-cell *matCellDef="let row">{{ dispositionLabel(row.disposition) }}</td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-button type="button" (click)="openInspect(row)">Inspect</button>
+          @if (editable() && row.inspectionStatus !== InspectionResult.Pending) {
+            <button mat-button type="button" (click)="reInspect(row)">Re-Inspection</button>
+          }
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="lineCols"></tr>
+      <tr mat-row *matRowDef="let row; columns: lineCols"></tr>
+    </table>
+  </section>
+
+  @if (gallery().length) {
+    <section class="card">
+      <h3>Photo Evidence Gallery</h3>
+      <div class="gallery">
+        @for (g of gallery(); track g.id) {
+          <figure>
+            <img [src]="g.url" [alt]="g.fileName" />
+            <figcaption class="mono">{{ g.barcode }} · {{ g.fileName }}</figcaption>
+          </figure>
+        }
+      </div>
+    </section>
+  }
+
+  @if (editable()) {
+    <div class="sticky-actions">
+      <div class="sticky-actions__inner">
+        <div class="hint">
+          @if (d.pendingCarton > 0) {
+            Masih ada {{ d.pendingCarton }} karton Pending — Inspect / Bulk Pass dulu, baru Complete QI.
+          } @else {
+            Semua karton sudah diinspeksi. Silakan Complete QI.
+          }
+        </div>
+        <button
+          mat-flat-button
+          class="btn-copper"
+          type="button"
+          [disabled]="busy() || d.pendingCarton > 0"
+          (click)="completeQi()"
+        >
+          <mat-icon>task_alt</mat-icon>
+          Complete QI
+          @if (d.pendingCarton > 0) {
+            ({{ d.pendingCarton }} pending)
+          }
+        </button>
+      </div>
+    </div>
+  }
+}
+
+@if (activeDetail(); as det) {
+  <div class="drawer-backdrop" (click)="closeInspect()"></div>
+  <aside class="drawer card" (click)="$event.stopPropagation()">
+    <div class="section-head">
+      <h3>Inspect {{ det.barcode }}</h3>
+      <button mat-icon-button type="button" (click)="closeInspect()"><mat-icon>close</mat-icon></button>
+    </div>
+    <p class="muted">{{ det.itemCode }} — {{ det.itemName }} · Round {{ det.historyRound }}</p>
+
+    <form [formGroup]="inspectForm" class="inspect-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Inspection Result</mat-label>
+        <mat-select formControlName="result">
+          <mat-option [value]="InspectionResult.Passed">Passed</mat-option>
+          <mat-option [value]="InspectionResult.Failed">Failed</mat-option>
+          <mat-option [value]="InspectionResult.Hold">Hold</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Disposition</mat-label>
+        <mat-select formControlName="disposition">
+          <mat-option [value]="QiDisposition.ReleaseUU">Release to UU</mat-option>
+          <mat-option [value]="QiDisposition.Quarantine">Quarantine</mat-option>
+          <mat-option [value]="QiDisposition.Block">Block</mat-option>
+          <mat-option [value]="QiDisposition.Return">Return</mat-option>
+          <mat-option [value]="QiDisposition.Scrap">Scrap</mat-option>
+          <mat-option [value]="QiDisposition.Rework">Rework</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Failure Reason</mat-label>
+        <input matInput formControlName="failureReason" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Notes</mat-label>
+        <textarea matInput rows="2" formControlName="notes"></textarea>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Inspector</mat-label>
+        <input matInput formControlName="inspectorName" />
+      </mat-form-field>
+    </form>
+
+    <h4>Checklist</h4>
+    <div [formGroup]="checklistForm" class="checklist">
+      <div formArrayName="items">
+        @for (c of checklistItems.controls; track $index; let i = $index) {
+          <div class="check-row" [formGroupName]="i">
+            <span>{{ c.value.inspectionPoint }}</span>
+            <mat-select formControlName="result">
+              <mat-option [value]="ChecklistResult.Pass">Pass</mat-option>
+              <mat-option [value]="ChecklistResult.Fail">Fail</mat-option>
+              <mat-option [value]="ChecklistResult.NA">N/A</mat-option>
+            </mat-select>
+          </div>
+        }
+      </div>
+    </div>
+
+    <h4>Photo Evidence</h4>
+    <p class="photo-hint">Capture membuka kamera langsung — Ambil foto lalu Pakai foto. Upload untuk pilih dari galeri.</p>
+    <div class="photo-actions">
+      <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="!editable() || busy()">
+        <mat-icon>upload</mat-icon> Upload galeri
+      </button>
+      <button mat-flat-button class="btn-copper" type="button" (click)="capturePhoto()" [disabled]="!editable() || busy()">
+        <mat-icon>photo_camera</mat-icon> Ambil dari kamera
+      </button>
+      <input #fileInput type="file" hidden accept="image/*" (change)="onFileSelected($event)" />
+    </div>
+    <div class="evidence-grid">
+      @for (p of evidencePreviews(); track p.id) {
+        <figure>
+          <img [src]="p.url" [alt]="p.fileName" />
+          @if (editable()) {
+            <button mat-icon-button type="button" color="warn" (click)="removeEvidence(p.id)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          }
+        </figure>
+      }
+    </div>
+
+    @if (editable()) {
+      <div class="actions end">
+        <button mat-button type="button" (click)="closeInspect()">Batal</button>
+        <button mat-flat-button class="btn-copper" type="button" [disabled]="busy()" (click)="submitInspection()">
+          Submit Inspection
+        </button>
+      </div>
+    }
+  </aside>
+}

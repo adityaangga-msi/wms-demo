@@ -1,0 +1,175 @@
+<section class="auth-shell">
+  <div class="auth-ambient" aria-hidden="true">
+    <canvas #ambientCanvas></canvas>
+  </div>
+
+  <div class="auth-visual">
+    <div class="logo-frame">
+      <mat-icon>warehouse</mat-icon>
+    </div>
+    <h1>KartonDock</h1>
+    <p class="brand-tagline">Warehouse Ops · Carton WMS</p>
+    <ul class="brand-ticks">
+      <li class="brand-tick">
+        <span class="brand-tick__icon"><mat-icon>inventory_2</mat-icon></span>
+        <span>Inventory berbasis karton dengan barcode unik per unit</span>
+      </li>
+      <li class="brand-tick">
+        <span class="brand-tick__icon"><mat-icon>qr_code_scanner</mat-icon></span>
+        <span>Inbound, outbound, dan adjustment dengan scan USB / kamera</span>
+      </li>
+      <li class="brand-tick">
+        <span class="brand-tick__icon"><mat-icon>cloud_off</mat-icon></span>
+        <span>Mode DEMO — data lokal IndexedDB, tanpa backend</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="auth-panel panel">
+    <div class="panel-head">
+      <h2>{{ prefs.language() === 'en' ? 'Sign in to KartonDock' : 'Masuk ke KartonDock' }}</h2>
+      <div class="lang" role="group" aria-label="Language">
+        <button
+          type="button"
+          class="lang-option"
+          [class.active]="prefs.language() === 'id'"
+          (click)="setLang('id')"
+        >
+          Indonesia
+        </button>
+        <button
+          type="button"
+          class="lang-option"
+          [class.active]="prefs.language() === 'en'"
+          (click)="setLang('en')"
+        >
+          English
+        </button>
+      </div>
+    </div>
+
+    <p class="panel-sub">
+      @if (prefs.language() === 'en') {
+        Carton-based warehouse ops for inbound, outbound, adjustment, and stock reports.
+      } @else {
+        Sistem operasional gudang berbasis karton untuk simulasi inbound, outbound, adjustment, dan laporan stok.
+      }
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+      <label class="field-label">{{ prefs.language() === 'en' ? 'EMAIL' : 'EMAIL' }}</label>
+      <mat-form-field appearance="outline" class="full glass-field">
+        <input matInput type="email" formControlName="email" autocomplete="username" />
+        <mat-icon matPrefix>mail</mat-icon>
+      </mat-form-field>
+
+      <label class="field-label">{{ prefs.language() === 'en' ? 'PASSWORD' : 'KATA SANDI' }}</label>
+      <mat-form-field appearance="outline" class="full glass-field">
+        <input
+          matInput
+          [type]="showPassword() ? 'text' : 'password'"
+          formControlName="password"
+          autocomplete="current-password"
+        />
+        <mat-icon matPrefix>lock</mat-icon>
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          (click)="togglePassword()"
+          [attr.aria-label]="prefs.language() === 'en' ? 'Show password' : 'Tampilkan kata sandi'"
+        >
+          <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <div class="row">
+        <mat-checkbox formControlName="remember">
+          {{ prefs.language() === 'en' ? 'Remember me' : 'Ingat saya' }}
+        </mat-checkbox>
+      </div>
+
+      <button mat-flat-button class="btn-submit" type="submit" [disabled]="submitting()">
+        {{ prefs.language() === 'en' ? 'Sign in' : 'Masuk' }}
+      </button>
+
+      <div class="or-line">
+        <span>{{ prefs.language() === 'en' ? 'OR SIGN IN WITH DEMO' : 'ATAU MASUK DENGAN AKUN DEMO' }}</span>
+      </div>
+
+      <button mat-stroked-button type="button" class="btn-demo" (click)="openDemoPicker()">
+        {{ prefs.language() === 'en' ? 'Sign in with Demo Account' : 'Masuk dengan Akun Demo' }}
+      </button>
+    </form>
+
+    <p class="foot">© {{ year }} KartonDock WMS Demo</p>
+  </div>
+</section>
+
+@if (showDemoPicker()) {
+  <div class="demo-overlay dialog-backdrop" (click)="closeDemoPicker()">
+    <div class="demo-sheet dialog-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <div class="demo-sheet__head">
+        <div>
+          <h3>Masuk sebagai Akun Demo</h3>
+          <p>Pilih peran operasional gudang. Semua akun memakai sandi <code>password123</code>.</p>
+        </div>
+        <button mat-icon-button type="button" class="dialog-close" (click)="closeDemoPicker()" aria-label="Tutup">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <mat-form-field appearance="outline" class="demo-search" subscriptSizing="dynamic">
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [value]="demoQuery()"
+          (input)="demoQuery.set($any($event.target).value)"
+          placeholder="Cari nama, email, jabatan, atau divisi…"
+        />
+      </mat-form-field>
+
+      <div class="demo-chips">
+        <button type="button" class="chip" [class.active]="demoFilter() === 'all'" (click)="demoFilter.set('all')">
+          Semua Akun {{ filterCounts().all }}
+        </button>
+        <button type="button" class="chip" [class.active]="demoFilter() === 'admin'" (click)="demoFilter.set('admin')">
+          <span class="dot admin"></span> Admin
+        </button>
+        <button
+          type="button"
+          class="chip"
+          [class.active]="demoFilter() === 'supervisor'"
+          (click)="demoFilter.set('supervisor')"
+        >
+          <span class="dot supervisor"></span> Supervisor
+        </button>
+        <button type="button" class="chip" [class.active]="demoFilter() === 'staff'" (click)="demoFilter.set('staff')">
+          <span class="dot staff"></span> Staff Ops
+        </button>
+      </div>
+
+      <div class="demo-list">
+        @for (u of filteredDemo(); track u.id) {
+          <button type="button" class="demo-card" (click)="pickDemo(u)">
+            <div class="avatar" [style.background]="u.avatarTone || '#1a3a5c'">{{ u.initials }}</div>
+            <div class="meta">
+              <div class="meta__top">
+                <strong>{{ u.name }}</strong>
+                <span class="role-pill">{{ u.role }}</span>
+              </div>
+              <span class="div-pill">{{ u.division }}</span>
+              <em>{{ u.email }}</em>
+              @if (u.blurb) {
+                <p>{{ u.blurb }}</p>
+              }
+            </div>
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        } @empty {
+          <p class="empty">Tidak ada akun yang cocok.</p>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,24 @@
+.card {
+  background: #fff;
+  border: 1px solid var(--kd-border);
+  border-radius: var(--kd-radius);
+  padding: 1rem;
+}
+.filters {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+  mat-form-field {
+    min-width: 200px;
+  }
+}
+.empty {
+  color: var(--kd-muted);
+  margin: 0.75rem 0 0;
+}
+a {
+  color: #0d6b64;
+  text-decoration: none;
+  font-weight: 600;
+}

@@ -1,0 +1,91 @@
+<app-page-header title="Pengaturan" subtitle="Kelola profil dan preferensi Anda" />
+
+<section class="panel profile-panel">
+  <div class="profile-card">
+    <div class="profile-card__avatar-wrap">
+      <div
+        class="profile-card__avatar"
+        [style.background]="user()?.avatarTone || '#1a3a5c'"
+      >
+        {{ user()?.initials || 'DU' }}
+      </div>
+      <button
+        type="button"
+        class="profile-card__avatar-badge"
+        (click)="openEditProfile()"
+        aria-label="Ubah foto profil"
+      >
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+
+    <div class="profile-card__info">
+      <strong>{{ user()?.name }}</strong>
+      <span class="email">{{ user()?.email }}</span>
+      <div class="badges">
+        <span class="badge badge--admin">{{ user()?.role }}</span>
+        <span class="badge">{{ user()?.division }}</span>
+      </div>
+    </div>
+
+    <div class="profile-card__actions">
+      <button mat-stroked-button type="button" class="btn-secondary" (click)="openEditProfile()">
+        <mat-icon>edit</mat-icon>
+        Edit Profil
+      </button>
+      <button mat-flat-button type="button" class="btn-danger" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Keluar
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="panel reset-panel">
+  <div>
+    <h2>Reset Data Demo</h2>
+    <p>Kembalikan seluruh data demo ke kondisi awal (simulasi; hanya mode lokal).</p>
+  </div>
+  <button mat-stroked-button type="button" color="warn" (click)="resetDemo()">
+    <mat-icon>restart_alt</mat-icon>
+    Reset data demo
+  </button>
+</section>
+
+<nav class="menu-list" aria-label="Pengaturan">
+  <a class="menu-item" routerLink="/settings/preferences">
+    <div>
+      <strong>Preferensi</strong>
+      <span>Pilih bahasa antarmuka. Perubahan langsung berlaku.</span>
+    </div>
+    <mat-icon>chevron_right</mat-icon>
+  </a>
+  <a class="menu-item" routerLink="/settings/security">
+    <div>
+      <strong>Keamanan</strong>
+      <span>Kelola keamanan akun Anda.</span>
+    </div>
+    <mat-icon>chevron_right</mat-icon>
+  </a>
+  <a class="menu-item" routerLink="/settings/demo-data">
+    <div>
+      <strong>Demo Data</strong>
+      <span>Load sample, export/import, dan manajemen dataset lokal.</span>
+    </div>
+    <mat-icon>chevron_right</mat-icon>
+  </a>
+  <a class="menu-item" routerLink="/settings/scenarios">
+    <div>
+      <strong>Skenario Transaksi</strong>
+      <span>Contoh alur inbound → outbound scan → adjustment → laporan.</span>
+    </div>
+    <mat-icon>chevron_right</mat-icon>
+  </a>
+  <a class="menu-item" routerLink="/settings/about">
+    <div>
+      <strong>Tentang Aplikasi</strong>
+      <span>Informasi tentang aplikasi dan demo KartonDock.</span>
+    </div>
+    <mat-icon>chevron_right</mat-icon>
+  </a>
+</nav>

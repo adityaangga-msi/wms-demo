@@ -1,0 +1,27 @@
+.card {
+  background: #fff;
+  border: 1px solid var(--kd-border);
+  border-radius: var(--kd-radius);
+  padding: 1rem;
+}
+
+.search {
+  width: min(360px, 100%);
+  margin-bottom: 0.5rem;
+}
+
+.actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.empty {
+  color: var(--kd-muted);
+  margin: 0.75rem 0 0;
+}
+
+.hint {
+  font-size: 0.72rem;
+  color: var(--kd-muted);
+  margin-top: 0.15rem;
+}

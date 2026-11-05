@@ -1,0 +1,67 @@
+<app-page-header title="Master Location" subtitle="Lokasi bin/rack per warehouse & lantai. Klik baris untuk lihat stok.">
+  <button mat-flat-button class="btn-copper" type="button" (click)="openCreate()">
+    <mat-icon>add</mat-icon>
+    Tambah Location
+  </button>
+</app-page-header>
+
+<div class="card">
+  <mat-form-field appearance="outline" class="search" subscriptSizing="dynamic">
+    <mat-label>Cari location</mat-label>
+    <input matInput [value]="search()" (input)="onSearch($any($event.target).value)" />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <div class="table-wrap"><table mat-table [dataSource]="filtered()" class="wms-table">
+    <ng-container matColumnDef="locationCode">
+      <th mat-header-cell *matHeaderCellDef>Code</th>
+      <td mat-cell *matCellDef="let row" class="mono">{{ row.locationCode }}</td>
+    </ng-container>
+    <ng-container matColumnDef="locationName">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let row">{{ row.locationName }}</td>
+    </ng-container>
+    <ng-container matColumnDef="warehouseCode">
+      <th mat-header-cell *matHeaderCellDef>Warehouse</th>
+      <td mat-cell *matCellDef="let row" class="mono">{{ row.warehouseCode }}</td>
+    </ng-container>
+    <ng-container matColumnDef="floorCode">
+      <th mat-header-cell *matHeaderCellDef>Lantai</th>
+      <td mat-cell *matCellDef="let row" class="mono">{{ row.floorCode || '—' }}</td>
+    </ng-container>
+    <ng-container matColumnDef="locationType">
+      <th mat-header-cell *matHeaderCellDef>Type</th>
+      <td mat-cell *matCellDef="let row">{{ row.locationType }}</td>
+    </ng-container>
+    <ng-container matColumnDef="capacity">
+      <th mat-header-cell *matHeaderCellDef>Capacity</th>
+      <td mat-cell *matCellDef="let row">{{ row.capacity ?? '—' }}</td>
+    </ng-container>
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let row"><app-status-badge [status]="row.status" /></td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let row" class="actions">
+        <button mat-icon-button type="button" (click)="openStock(row, $event)" aria-label="Stok">
+          <mat-icon>inventory_2</mat-icon>
+        </button>
+        <button mat-icon-button type="button" (click)="openMap(row, $event)" aria-label="Map">
+          <mat-icon>map</mat-icon>
+        </button>
+        <button mat-icon-button type="button" (click)="openEdit(row, $event)" aria-label="Edit">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button type="button" color="warn" (click)="remove(row, $event)" aria-label="Hapus">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="cols"></tr>
+    <tr mat-row *matRowDef="let row; columns: cols" class="click-row" (click)="openStock(row)"></tr>
+  </table></div>
+  @if (!filtered().length) {
+    <p class="empty">Tidak ada data.</p>
+  }
+</div>

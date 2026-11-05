@@ -1,0 +1,47 @@
+<app-page-header title="Tentang Aplikasi" subtitle="Informasi tentang aplikasi dan demo KartonDock.">
+  <a mat-stroked-button routerLink="/settings">
+    <mat-icon>arrow_back</mat-icon>
+    Kembali ke pengaturan
+  </a>
+</app-page-header>
+
+<section class="panel hero">
+  <div class="brand">
+    <div class="mark"><mat-icon>warehouse</mat-icon></div>
+    <div>
+      <strong>KartonDock WMS</strong>
+      <span>Warehouse Management Demo · berbasis karton</span>
+    </div>
+  </div>
+  <div class="meta-grid">
+    <div><em>VERSI</em><strong>v1.0.0-demo</strong></div>
+    <div><em>MODE</em><strong>Local IndexedDB</strong></div>
+    <div><em>STACK</em><strong>Angular · Dexie · Material</strong></div>
+    <div><em>TAHUN</em><strong>{{ year }}</strong></div>
+  </div>
+</section>
+
+<section class="stats">
+  <article><strong>CTN</strong><span>Barcode per karton</span></article>
+  <article><strong>3+</strong><span>Peran demo akun</span></article>
+  <article><strong>0</strong><span>Backend required</span></article>
+  <article><strong>OTP</strong><span>Simulasi login 246810</span></article>
+</section>
+
+<section class="panel prose">
+  <h2>Tentang KartonDock</h2>
+  <p>
+    KartonDock adalah demo WMS lokal untuk operasional gudang tanpa palet — fokus inbound, outbound,
+    adjustment, barcode tracking, inventory, dan laporan. Seluruh data tersimpan di browser (Dexie /
+    IndexedDB) sehingga cocok untuk handover, presentasi, dan pelatihan.
+  </p>
+  <h3>Visi demo</h3>
+  <p>Menyajikan alur warehouse carton-centric yang mudah dipahami dan siap diuji tanpa infrastruktur server.</p>
+  <h3>Cakupan modul</h3>
+  <ul>
+    <li>Master item, warehouse, location, supplier, customer</li>
+    <li>Operasi inbound / outbound / adjustment dengan scan barcode</li>
+    <li>Inventory summary & detail, barcode tracking</li>
+    <li>Dashboard KPI, notifikasi, dan laporan transaksi</li>
+  </ul>
+</section>
