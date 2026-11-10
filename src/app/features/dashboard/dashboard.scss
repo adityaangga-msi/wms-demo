@@ -14,6 +14,16 @@
   flex-direction: column;
   gap: 0.35rem;
   min-height: 168px;
+  transition:
+    transform var(--kd-motion-normal) var(--kd-ease-soft),
+    box-shadow var(--kd-motion-normal) var(--kd-ease),
+    border-color var(--kd-motion-fast) var(--kd-ease);
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--kd-shadow);
+    border-color: rgba(61, 143, 209, 0.28);
+  }
 }
 
 .kpi-card__head {

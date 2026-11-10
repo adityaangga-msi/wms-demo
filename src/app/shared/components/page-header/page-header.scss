@@ -9,6 +9,27 @@
     linear-gradient(135deg, rgba(240, 162, 2, 0.16), transparent 42%),
     linear-gradient(160deg, #16253a 0%, #0b1728 58%, #132033 100%);
   box-shadow: 0 16px 36px rgba(11, 23, 40, 0.18);
+  transform-origin: center top;
+}
+
+.hero__text h1,
+.hero__text p,
+.hero__crumbs,
+.hero__actions {
+  animation: kd-rise 0.55s var(--kd-ease-soft) both;
+}
+
+.hero__crumbs {
+  animation-delay: 0.02s;
+}
+.hero__text h1 {
+  animation-delay: 0.08s;
+}
+.hero__text p {
+  animation-delay: 0.14s;
+}
+.hero__actions {
+  animation-delay: 0.18s;
 }
 
 .hero__glow {

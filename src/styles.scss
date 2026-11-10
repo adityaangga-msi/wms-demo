@@ -32,10 +32,13 @@
   --kd-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --kd-copper: var(--kd-amber-deep);
   --kd-mint: var(--kd-steel);
-  --kd-motion-fast: 0.12s;
-  --kd-motion-normal: 0.2s;
-  --kd-motion-slow: 0.32s;
-  --kd-ease: cubic-bezier(0.2, 0, 0.2, 1);
+  --kd-motion-fast: 0.16s;
+  --kd-motion-normal: 0.28s;
+  --kd-motion-slow: 0.48s;
+  --kd-motion-boot: 0.72s;
+  --kd-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --kd-ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --kd-ease-spring: cubic-bezier(0.34, 1.35, 0.64, 1);
 }
 
 html {
@@ -97,9 +100,21 @@ body {
   padding: 1.15rem 1.25rem;
   box-shadow: var(--kd-shadow-sm);
   transition:
-    box-shadow var(--kd-motion-fast) var(--kd-ease),
+    box-shadow var(--kd-motion-normal) var(--kd-ease),
     border-color var(--kd-motion-fast) var(--kd-ease),
-    transform var(--kd-motion-fast) var(--kd-ease);
+    transform var(--kd-motion-normal) var(--kd-ease-soft);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--kd-shadow);
+}
+
+.card:has(table.wms-table):hover,
+.card:has(form):hover,
+.card:has(.mat-mdc-form-field):hover {
+  transform: none;
+  box-shadow: var(--kd-shadow-sm);
 }
 
 .card:has(table.wms-table) {
@@ -249,18 +264,138 @@ a.btn-hero-light {
 }
 
 .page-view {
-  animation: page-enter var(--kd-motion-slow) var(--kd-ease);
+  transition:
+    opacity var(--kd-motion-normal) var(--kd-ease),
+    transform var(--kd-motion-normal) var(--kd-ease),
+    filter var(--kd-motion-normal) var(--kd-ease);
+}
+
+.page-view--enter {
+  animation: page-enter var(--kd-motion-slow) var(--kd-ease-soft) both;
 }
 
 @keyframes page-enter {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(18px) scale(0.985);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes kd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
   }
   to {
     opacity: 1;
     transform: none;
   }
+}
+
+@keyframes kd-sidebar-in {
+  from {
+    opacity: 0;
+    transform: translateX(-28px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes kd-main-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.985);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* Staggered entrance for routed page sections (Framer-like cascade) */
+.kd-page-enter > *:not(router-outlet) {
+  animation: kd-rise 0.58s var(--kd-ease-soft) both;
+}
+
+.kd-page-enter > *:nth-child(1) {
+  animation-delay: 0.04s;
+}
+.kd-page-enter > *:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.kd-page-enter > *:nth-child(3) {
+  animation-delay: 0.16s;
+}
+.kd-page-enter > *:nth-child(4) {
+  animation-delay: 0.22s;
+}
+.kd-page-enter > *:nth-child(5) {
+  animation-delay: 0.28s;
+}
+.kd-page-enter > *:nth-child(6) {
+  animation-delay: 0.34s;
+}
+.kd-page-enter > *:nth-child(7) {
+  animation-delay: 0.4s;
+}
+.kd-page-enter > *:nth-child(8) {
+  animation-delay: 0.46s;
+}
+
+.kd-page-enter .kpi-card,
+.kd-page-enter .chart-card,
+.kd-page-enter .tables > .card {
+  animation: kd-rise 0.55s var(--kd-ease-soft) both;
+}
+
+.kd-page-enter .kpi-grid .kpi-card:nth-child(1) {
+  animation-delay: 0.12s;
+}
+.kd-page-enter .kpi-grid .kpi-card:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.kd-page-enter .kpi-grid .kpi-card:nth-child(3) {
+  animation-delay: 0.24s;
+}
+.kd-page-enter .kpi-grid .kpi-card:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.kd-page-enter .qi-kpi .kpi-card:nth-child(1) {
+  animation-delay: 0.22s;
+}
+.kd-page-enter .qi-kpi .kpi-card:nth-child(2) {
+  animation-delay: 0.28s;
+}
+.kd-page-enter .qi-kpi .kpi-card:nth-child(3) {
+  animation-delay: 0.34s;
+}
+.kd-page-enter .qi-kpi .kpi-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.kd-page-enter .charts > *:nth-child(1) {
+  animation-delay: 0.28s;
+}
+.kd-page-enter .charts > *:nth-child(2) {
+  animation-delay: 0.34s;
+}
+.kd-page-enter .charts > *:nth-child(3) {
+  animation-delay: 0.4s;
+}
+.kd-page-enter .tables > *:nth-child(1) {
+  animation-delay: 0.36s;
+}
+.kd-page-enter .tables > *:nth-child(2) {
+  animation-delay: 0.42s;
 }
 
 .snack-success {

@@ -1,4 +1,14 @@
-import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map, startWith, firstValueFrom } from 'rxjs';
@@ -12,6 +22,7 @@ import { NotificationCenterService } from '../core/services/notification-center.
 import { HotkeysService } from '../core/services/hotkeys.service';
 import { NotificationService } from '../core/services/notification.service';
 import { NavigationUxService } from '../core/services/navigation-ux.service';
+import { PreferencesService } from '../core/services/preferences.service';
 import {
   ConfirmDialog,
   ConfirmDialogData,
@@ -46,7 +57,7 @@ interface NavGroup {
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
 })
-export class Shell implements OnInit {
+export class Shell implements OnInit, AfterViewInit {
   readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly notifCenter = inject(NotificationCenterService);
@@ -54,6 +65,10 @@ export class Shell implements OnInit {
   private readonly notify = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
   readonly navUx = inject(NavigationUxService);
+  readonly prefs = inject(PreferencesService);
+
+  private readonly navRoot = viewChild<ElementRef<HTMLElement>>('navRoot');
+  private hoveringNav = false;
 
   readonly todayLabel = new Date().toLocaleDateString('id-ID', {
     weekday: 'long',
@@ -67,8 +82,62 @@ export class Shell implements OnInit {
 
   readonly collapsed = signal(false);
   readonly mobileOpen = signal(false);
+  readonly booting = signal(true);
   readonly showBackTop = signal(false);
   readonly scrollProgress = signal(0);
+  readonly searchQuery = signal('');
+  readonly demoFill = signal(68);
+  readonly pillOn = signal(false);
+  readonly pillY = signal(0);
+  readonly pillH = signal(40);
+  readonly pillTransform = computed(() => `translate3d(0, ${this.pillY()}px, 0)`);
+
+  readonly tipOn = signal(false);
+  readonly tipText = signal('');
+  readonly tipTop = signal(0);
+  readonly tipLeft = signal(0);
+
+  private readonly iconTones: Record<string, string> = {
+    dashboard: 'tone-orange',
+    grid_view: 'tone-orange',
+    notifications: 'tone-blue',
+    inventory_2: 'tone-amber',
+    warehouse: 'tone-teal',
+    pin_drop: 'tone-green',
+    local_shipping: 'tone-indigo',
+    groups: 'tone-violet',
+    move_to_inbox: 'tone-cyan',
+    fact_check: 'tone-emerald',
+    outbox: 'tone-orange',
+    tune: 'tone-rose',
+    summarize: 'tone-blue',
+    table_rows: 'tone-slate',
+    qr_code_2: 'tone-violet',
+    map: 'tone-teal',
+    history: 'tone-amber',
+    incoming: 'tone-cyan',
+    outgoing: 'tone-orange',
+    compare_arrows: 'tone-rose',
+    bar_chart: 'tone-indigo',
+    translate: 'tone-blue',
+    lock: 'tone-slate',
+    science: 'tone-violet',
+    route: 'tone-emerald',
+    info: 'tone-teal',
+  };
+
+  readonly firstName = computed(() => {
+    const name = this.user()?.name?.trim() || 'Operator';
+    return name.split(/\s+/)[0];
+  });
+
+  readonly greeting = computed(() => {
+    const h = new Date().getHours();
+    if (h < 11) return 'Selamat pagi';
+    if (h < 15) return 'Selamat siang';
+    if (h < 18) return 'Selamat sore';
+    return 'Selamat malam';
+  });
 
   readonly backTopDash = computed(() => {
     const c = 2 * Math.PI * 15.5;
@@ -167,7 +236,7 @@ export class Shell implements OnInit {
 
   readonly breadcrumb = computed(() => {
     let node = this.navEnd();
-    let crumb = 'Overview';
+    let crumb = 'Dashboard';
     while (node) {
       if (node.data?.['breadcrumb']) crumb = String(node.data['breadcrumb']);
       else if (node.data?.['title']) crumb = String(node.data['title']);
@@ -184,7 +253,76 @@ export class Shell implements OnInit {
       .subscribe(() => {
         this.closeMobile();
         this.scrollToTop(false);
+        queueMicrotask(() => this.syncPillToActive());
       });
+  }
+
+  ngAfterViewInit(): void {
+    queueMicrotask(() => this.syncPillToActive());
+    // First-load choreography (sidebar → main → page), then unlock normal motion.
+    window.setTimeout(() => this.booting.set(false), 980);
+  }
+
+  iconTone(icon: string): string {
+    return this.iconTones[icon] || 'tone-slate';
+  }
+
+  onNavEnter(event: Event, label?: string): void {
+    const el = event.currentTarget as HTMLElement | null;
+    if (!el) return;
+    this.hoveringNav = true;
+    this.movePillTo(el);
+    this.showFloatTip(el, label || el.getAttribute('data-tooltip') || '');
+  }
+
+  onNavLeave(): void {
+    this.hoveringNav = false;
+    this.hideFloatTip();
+    this.syncPillToActive();
+  }
+
+  private showFloatTip(el: HTMLElement, label: string): void {
+    if (!this.collapsed() || !label) {
+      this.hideFloatTip();
+      return;
+    }
+    const box = el.getBoundingClientRect();
+    this.tipText.set(label);
+    this.tipTop.set(box.top + box.height / 2);
+    this.tipLeft.set(box.right + 14);
+    this.tipOn.set(true);
+  }
+
+  private hideFloatTip(): void {
+    this.tipOn.set(false);
+  }
+
+  focusShellSearch(): void {
+    this.openShortcuts();
+  }
+
+  private movePillTo(el: HTMLElement): void {
+    const root = this.navRoot()?.nativeElement;
+    if (!root) return;
+    const rootBox = root.getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    this.pillY.set(box.top - rootBox.top + root.scrollTop);
+    this.pillH.set(box.height);
+    this.pillOn.set(true);
+  }
+
+  private syncPillToActive(): void {
+    if (this.hoveringNav) return;
+    const root = this.navRoot()?.nativeElement;
+    if (!root) return;
+    const active = root.querySelector<HTMLElement>('.nav-link.active');
+    if (!active) {
+      this.pillOn.set(false);
+      return;
+    }
+    active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    // Wait a frame so scroll position settles before measuring pill.
+    requestAnimationFrame(() => this.movePillTo(active));
   }
 
   @HostListener('window:scroll')
@@ -206,10 +344,13 @@ export class Shell implements OnInit {
 
   toggleGroup(id: string): void {
     this.openGroups.update((g) => ({ ...g, [id]: !g[id] }));
+    queueMicrotask(() => this.syncPillToActive());
   }
 
   toggleSidebar(): void {
+    this.hideFloatTip();
     this.collapsed.update((v) => !v);
+    queueMicrotask(() => this.syncPillToActive());
   }
 
   openMobile(): void {
@@ -229,10 +370,58 @@ export class Shell implements OnInit {
     this.hotkeys.openHelp();
   }
 
+  toggleTheme(): void {
+    this.prefs.setTheme(this.prefs.theme() === 'dark' ? 'light' : 'dark');
+  }
+
+  onSearchInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchQuery.set(value);
+  }
+
+  runSearch(): void {
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) {
+      this.openShortcuts();
+      return;
+    }
+    const routes: Array<{ keys: string[]; path: string }> = [
+      { keys: ['inbound', 'in', 'masuk'], path: '/operations/inbound' },
+      { keys: ['outbound', 'out', 'keluar'], path: '/operations/outbound' },
+      { keys: ['qi', 'quality', 'inspeksi'], path: '/operations/qi' },
+      { keys: ['adjust', 'adjustment', 'movement'], path: '/operations/adjustment' },
+      { keys: ['item', 'sku', 'master'], path: '/master/items' },
+      { keys: ['warehouse', 'gudang', 'wh'], path: '/master/warehouses' },
+      { keys: ['inventory', 'stok', 'stock', 'summary'], path: '/inventory/summary' },
+      { keys: ['barcode', 'scan', 'tracking'], path: '/inventory/barcode-tracking' },
+      { keys: ['map', 'denah'], path: '/inventory/warehouse-map' },
+      { keys: ['report', 'laporan', 'history', 'riwayat'], path: '/reports/transactions' },
+      { keys: ['notif', 'notifikasi'], path: '/notifications' },
+      { keys: ['setting', 'preferensi', 'demo'], path: '/settings' },
+      { keys: ['dashboard', 'home', 'beranda', 'overview'], path: '/dashboard' },
+    ];
+    const hit = routes.find((r) => r.keys.some((k) => q.includes(k) || k.includes(q)));
+    if (hit) {
+      void this.router.navigateByUrl(hit.path);
+      this.searchQuery.set('');
+      return;
+    }
+    this.notify.info('Tidak ditemukan. Coba: inbound, outbound, inventory, reports.');
+  }
+
   onRouteActivate(host: HTMLElement): void {
     host.classList.remove('page-view--enter');
     void host.offsetWidth;
     host.classList.add('page-view--enter');
+
+    const page = Array.from(host.children).find((el) => {
+      const tag = el.tagName;
+      return tag !== 'ROUTER-OUTLET' && !tag.startsWith('NG-');
+    }) as HTMLElement | undefined;
+    if (!page) return;
+    page.classList.remove('kd-page-enter');
+    void page.offsetWidth;
+    page.classList.add('kd-page-enter');
   }
 
   async logout(): Promise<void> {

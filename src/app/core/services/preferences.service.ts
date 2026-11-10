@@ -75,6 +75,7 @@ export class PreferencesService {
     root.dataset['theme'] = state.theme;
     root.dataset['motion'] = state.animation ? 'on' : 'off';
     root.classList.toggle('theme-dark', state.theme === 'dark');
+    root.classList.toggle('theme-light', state.theme === 'light');
     root.classList.toggle('motion-off', !state.animation);
   }
 }

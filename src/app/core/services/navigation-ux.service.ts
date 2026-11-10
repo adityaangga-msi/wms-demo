@@ -45,9 +45,10 @@ export class NavigationUxService {
     }
     this.progress.set(100);
     if (bumpPage) this.pageKey.update((v) => v + 1);
+    // Keep veil briefly so outgoing fade + incoming rise overlap smoothly.
     window.setTimeout(() => {
       this.navigating.set(false);
       this.progress.set(0);
-    }, 220);
+    }, 160);
   }
 }

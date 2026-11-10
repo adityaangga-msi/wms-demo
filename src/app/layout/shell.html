@@ -3,11 +3,35 @@
   class="shell"
   [class.shell--collapsed]="collapsed()"
   [class.shell--mobile-open]="mobileOpen()"
+  [class.shell--boot]="booting()"
 >
   @if (mobileOpen()) {
     <button type="button" class="sidebar-backdrop" aria-label="Tutup menu" (click)="closeMobile()"></button>
   }
-  <aside class="sidebar">
+
+  @if (collapsed()) {
+    <div
+      class="nav-float-tip"
+      [class.nav-float-tip--on]="tipOn()"
+      [style.top.px]="tipTop()"
+      [style.left.px]="tipLeft()"
+      aria-hidden="true"
+    >
+      <span>{{ tipText() }}</span>
+    </div>
+  }
+
+  <aside class="sidebar" [class.sidebar--collapsed]="collapsed()">
+    <button
+      type="button"
+      class="sidebar-edge-toggle"
+      (click)="toggleSidebar()"
+      [matTooltip]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+      aria-label="Toggle sidebar"
+    >
+      <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+    </button>
+
     <div class="sidebar__brand">
       <div class="brand-mark" aria-hidden="true">
         <mat-icon>warehouse</mat-icon>
@@ -15,31 +39,41 @@
       @if (!collapsed()) {
         <div class="brand-text">
           <strong>KartonDock</strong>
-          <span>Warehouse Ops</span>
+          <span>Studio workspace</span>
         </div>
+        <span class="pro-badge">DEMO</span>
       }
-      <button
-        mat-icon-button
-        type="button"
-        class="collapse-btn"
-        (click)="toggleSidebar()"
-        [matTooltip]="collapsed() ? 'Expand' : 'Collapse'"
-      >
-        <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
-      </button>
     </div>
 
-    <nav class="sidebar__nav">
+    @if (!collapsed()) {
+      <button type="button" class="sidebar-search" (click)="openShortcuts()">
+        <mat-icon>search</mat-icon>
+        <span>Search</span>
+        <kbd>?</kbd>
+      </button>
+    }
+
+    <nav class="sidebar__nav" #navRoot (mouseleave)="onNavLeave()">
+      <div
+        class="nav-glass-pill"
+        [class.nav-glass-pill--on]="pillOn()"
+        [style.transform]="pillTransform()"
+        [style.height.px]="pillH()"
+        aria-hidden="true"
+      ></div>
+
       <a
         class="nav-link top"
         routerLink="/dashboard"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
-        [matTooltip]="collapsed() ? 'Beranda' : ''"
+        (mouseenter)="onNavEnter($event, 'Dashboard')"
+        (focus)="onNavEnter($event, 'Dashboard')"
+        [attr.data-tooltip]="'Dashboard'"
       >
-        <mat-icon>grid_view</mat-icon>
+        <span class="nav-ico tone-orange"><mat-icon>dashboard</mat-icon></span>
         @if (!collapsed()) {
-          <span>Beranda</span>
+          <span>Dashboard</span>
         }
       </a>
 
@@ -47,9 +81,11 @@
         class="nav-link top"
         routerLink="/notifications"
         routerLinkActive="active"
-        [matTooltip]="collapsed() ? 'Notifikasi' : ''"
+        (mouseenter)="onNavEnter($event, 'Notifikasi')"
+        (focus)="onNavEnter($event, 'Notifikasi')"
+        [attr.data-tooltip]="'Notifikasi'"
       >
-        <mat-icon>notifications</mat-icon>
+        <span class="nav-ico tone-blue"><mat-icon>notifications</mat-icon></span>
         @if (!collapsed()) {
           <span>Notifikasi</span>
           @if (unreadCount() > 0) {
@@ -75,9 +111,13 @@
                   class="nav-link"
                   [routerLink]="item.path"
                   routerLinkActive="active"
-                  [matTooltip]="collapsed() ? item.label : ''"
+                  (mouseenter)="onNavEnter($event, item.label)"
+                  (focus)="onNavEnter($event, item.label)"
+                  [attr.data-tooltip]="item.label"
                 >
-                  <mat-icon>{{ item.icon }}</mat-icon>
+                  <span [class]="'nav-ico ' + iconTone(item.icon)">
+                    <mat-icon>{{ item.icon }}</mat-icon>
+                  </span>
                   @if (!collapsed()) {
                     <span>{{ item.label }}</span>
                   }
@@ -91,9 +131,13 @@
 
     <div class="sidebar__foot">
       @if (!collapsed()) {
-        <div class="demo-note">
-          <mat-icon>cloud_off</mat-icon>
-          <span>DEMO · data lokal di browser</span>
+        <div class="plan-card">
+          <div class="plan-card__top">
+            <span>Demo capacity</span>
+            <strong>{{ demoFill() }}%</strong>
+          </div>
+          <div class="plan-bar"><span [style.width.%]="demoFill()"></span></div>
+          <p>Data lokal IndexedDB · mode DEMO</p>
         </div>
       }
       <button
@@ -115,6 +159,10 @@
         <button mat-menu-item type="button" (click)="openShortcuts()">
           <mat-icon>keyboard</mat-icon>
           <span>Pintasan keyboard</span>
+        </button>
+        <button mat-menu-item type="button" (click)="toggleTheme()">
+          <mat-icon>{{ prefs.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+          <span>{{ prefs.theme() === 'dark' ? 'Mode terang' : 'Mode gelap' }}</span>
         </button>
         <button mat-menu-item type="button" (click)="router.navigateByUrl('/notifications')">
           <mat-icon>notifications</mat-icon>
@@ -194,14 +242,9 @@
       </div>
     </div>
 
-    <main class="content">
+    <main class="content" [class.content--navigating]="navUx.navigating()">
       @if (navUx.navigating()) {
-        <div class="route-veil" aria-hidden="true">
-          <div class="route-veil__card">
-            <div class="route-veil__spinner"></div>
-            <span>Memuat halaman…</span>
-          </div>
-        </div>
+        <div class="route-veil" aria-hidden="true"></div>
       }
       <div class="page-view" #pageView>
         <router-outlet (activate)="onRouteActivate(pageView)" />
